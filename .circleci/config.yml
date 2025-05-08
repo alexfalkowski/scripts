@@ -19,7 +19,7 @@ jobs:
     resource_class: large
 
 workflows:
-  docker:
+  scripts:
     jobs:
       - lint
       - release:
