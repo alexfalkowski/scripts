@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1010
+
+set -e
+
+readonly dirs=("$HOME/code/go-client-template" "$HOME/code/go-service-template" "$HOME/code/bezeichner" "$HOME/code/migrieren" "$HOME/code/standort" "$HOME/code/status" "$HOME/code/web" "$HOME/code/sasha" "$HOME/code/sashactl")
+readonly action=$1
+
+case $action in
+  new)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && update-dep "$2" "$3" "$4")
+    done
+    ;;
+
+  latest)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && make latest)
+    done
+    ;;
+
+  bundler)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && update-bundler "svc" "$2" "$3")
+    done
+    ;;
+
+  done)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && make done)
+    done
+    ;;
+esac

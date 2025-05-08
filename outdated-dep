@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+kind = ARGV[0]
+deps = if kind == 'lib'
+         `make outdated-dep`.split("\n").drop(1)
+       elsif kind == 'svc'
+         `make go-outdated-dep`.split("\n").drop(1)
+       else
+         []
+       end
+
+deps.each do |d|
+  m, _ = d.split
+
+  if kind == 'lib'
+    `make module=#{m} update-dep`
+  elsif kind == 'svc'
+    `make module=#{m} go-update-dep`
+  end
+end

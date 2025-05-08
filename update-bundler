@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+
+readonly kind=$1
+readonly version=$2
+readonly desc=$3
+
+make name=deps new-test
+
+case $kind in
+  lib)
+    gem install bundler -v "$version"
+    make submodule update-bundler
+    ;;
+
+  svc)
+    (cd test && gem install bundler -v "$version")
+    make submodule ruby-update-bundler
+    ;;
+esac
+
+make msg="upgraded bundler to $version" desc="${desc}" ready
