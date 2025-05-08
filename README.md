@@ -2,19 +2,19 @@
 
 A place for common scripts.
 
-# Install
+## Install
 
 Here we have the following:
 - Golang
 - Ruby
 
-# Update
+## Update
 
 Here we have the following:
 - Dependencies
 - Bundler
 
-# Ruby
+## Ruby
 
 Here we have the following:
 - LSP
