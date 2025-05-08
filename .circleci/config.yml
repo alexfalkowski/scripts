@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+  lint:
+    docker:
+      - image: alexfalkowski/docker:1.17
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run: make lint
+    resource_class: large
+  release:
+    docker:
+      - image: alexfalkowski/release:3.19
+    steps:
+      - checkout
+      - run: release
+    resource_class: large
+
+workflows:
+  docker:
+    jobs:
+      - lint
+      - release:
+          context: gh
+          requires:
+            - lint
+          filters:
+            branches:
+              only: master
