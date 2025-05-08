@@ -3,7 +3,7 @@ include bin/build/make/git.mak
 
 # Lint all scripts.
 scripts-lint:
-	shellcheck install-* load ruby-* update-*
+	shellcheck install-* ruby-* update-*
 
 # Run all linters.
 lint: scripts-lint
