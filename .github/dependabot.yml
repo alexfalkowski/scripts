@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    allow:
+      - dependency-name: "bin"
