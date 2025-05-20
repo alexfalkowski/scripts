@@ -7,6 +7,6 @@ readonly version=$2
 readonly desc=$3
 
 make name=deps new-"${kind}"
-make module=github.com/alexfalkowski/go-service@"$version" go-get
+make module=github.com/alexfalkowski/go-service/v2@"$version" go-get
 make submodule go-dep ruby-update-all-dep
-make msg="upgraded github.com/alexfalkowski/go-service to $version" desc="${desc}" ready
+make msg="upgraded github.com/alexfalkowski/go-service/v2 to $version" desc="${desc}" ready
