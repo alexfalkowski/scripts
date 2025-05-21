@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+make name=deps new-build
+git submodule foreach git pull origin master
+make msg="upgraded github.com/alexfalkowski/bin" ready
