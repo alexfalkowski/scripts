@@ -28,6 +28,13 @@ case $action in
     done
     ;;
 
+  submodule)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && update-submodule)
+    done
+    ;;
+
   done)
     for dir in "${dirs[@]}"
     do
