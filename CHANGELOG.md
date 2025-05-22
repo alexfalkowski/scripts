@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.5.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.5.0) - 2025-05-22
+
+- [`48979c5`](https://github.com/alexfalkowski/scripts/commit/48979c52891295b0f5bda642c4b973808935c305) feat(ruby): add suport (#9)
+- [`4adc8c4`](https://github.com/alexfalkowski/scripts/commit/4adc8c43321484d35836d8369f4045a12004e8cf) build(deps): bump bin from `de214a6` to `104e349` (#8)
+
 ## [v0.4.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.4.0) - 2025-05-21
 
 - [`2fd32ac`](https://github.com/alexfalkowski/scripts/commit/2fd32ac19b79bb7960b05ace68251e025e6408d1) feat(update-all-dep): add ability to update submodule (#7)
