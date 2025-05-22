@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+go install github.com/alexfalkowski/gocovmerge@v1.8.0
+go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
+go install gotest.tools/gotestsum@v1.12.2
+go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.33.0
+go install github.com/loov/goda@latest
+go install github.com/air-verse/air@v1.61.7
+go install github.com/lasorda/protobuf-language-server@v0.1.1
