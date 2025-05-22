@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1010
 
-set -e
+set -eo pipefail
 
 readonly dirs=("$HOME/code/go-client-template" "$HOME/code/go-service-template" "$HOME/code/bezeichner" "$HOME/code/migrieren" "$HOME/code/standort" "$HOME/code/status" "$HOME/code/web" "$HOME/code/sasha" "$HOME/code/sashactl")
 readonly action=$1
