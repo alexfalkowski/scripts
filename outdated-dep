@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 kind = ARGV[0]
 deps = if kind == 'lib'
@@ -10,7 +11,7 @@ deps = if kind == 'lib'
        end
 
 deps.each do |d|
-  m, _ = d.split
+  m, = d.split
 
   if kind == 'lib'
     `make module=#{m} update-dep`

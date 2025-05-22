@@ -3,16 +3,29 @@ version: 2.1
 jobs:
   lint:
     docker:
-      - image: alexfalkowski/docker:1.17
+      - image: alexfalkowski/ruby:1.29
     steps:
       - checkout
       - run: git submodule sync
       - run: git submodule update --init
+      - restore_cache:
+          name: restore deps
+          keys:
+            - scripts-ruby-cache-{{ checksum "Gemfile.lock" }}
+            - scripts-ruby-cache-
+      - run: make dep
+      - run: make clean-dep
+      - save_cache:
+          name: save deps
+          key: scripts-ruby-cache-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor
+      - run: make scripts-lint
       - run: make lint
     resource_class: large
   release:
     docker:
-      - image: alexfalkowski/release:3.19
+      - image: alexfalkowski/release:3.20
     steps:
       - checkout
       - run: release
