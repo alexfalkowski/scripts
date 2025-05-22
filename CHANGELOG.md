@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.6.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.6.0) - 2025-05-22
+
+- [`f36cbe6`](https://github.com/alexfalkowski/scripts/commit/f36cbe6774ccc7bfc714e43084c17d0c226449f3) feat(scripts): set -eo pipefail (#10)
+
 ## [v0.5.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.5.0) - 2025-05-22
 
 - [`48979c5`](https://github.com/alexfalkowski/scripts/commit/48979c52891295b0f5bda642c4b973808935c305) feat(ruby): add suport (#9)
