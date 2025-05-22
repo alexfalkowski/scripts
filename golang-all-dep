@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
 
 go install github.com/alexfalkowski/gocovmerge@v1.8.0
 go install golang.org/x/vuln/cmd/govulncheck@v1.1.4

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
 
 make name=deps new-build
 git submodule foreach git pull origin master
