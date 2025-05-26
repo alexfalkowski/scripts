@@ -3,5 +3,5 @@
 set -eo pipefail
 
 make name=deps new-build
-git submodule foreach git pull origin master
+make update-submodule
 make msg="upgraded github.com/alexfalkowski/bin" ready
