@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.7.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.7.0) - 2025-05-26
+
+- [`0ec40a4`](https://github.com/alexfalkowski/scripts/commit/0ec40a41affdbe4695abce3996804bd86e1ec193) feat(submodule): use new make update-submodule (#13)
+- [`9492424`](https://github.com/alexfalkowski/scripts/commit/94924245d197bd6e2bd73a88237ea18092eb2230) build(deps): upgraded github.com/alexfalkowski/bin (#12)
+- [`9591dd2`](https://github.com/alexfalkowski/scripts/commit/9591dd2ade849788a04431ef439be3a65386a76d) build(deps): bump bin from `104e349` to `eeb0425` (#11)
+
 ## [v0.6.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.6.0) - 2025-05-22
 
 - [`f36cbe6`](https://github.com/alexfalkowski/scripts/commit/f36cbe6774ccc7bfc714e43084c17d0c226449f3) feat(scripts): set -eo pipefail (#10)
