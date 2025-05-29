@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.8.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.8.0) - 2025-05-29
+
+- [`fa8158c`](https://github.com/alexfalkowski/scripts/commit/fa8158ce0ff8bebdeba0d1902b6dfcc2aadd8a0c) feat(update-submodule): allow to pass kind and desc (#14)
+
 ## [v0.7.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.7.0) - 2025-05-26
 
 - [`0ec40a4`](https://github.com/alexfalkowski/scripts/commit/0ec40a41affdbe4695abce3996804bd86e1ec193) feat(submodule): use new make update-submodule (#13)
