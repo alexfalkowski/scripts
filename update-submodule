@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
-make name=deps new-build
+readonly kind=$1
+readonly desc=$2
+
+make name=deps new-"${kind}"
 make update-submodule
-make msg="upgraded github.com/alexfalkowski/bin" ready
+make msg="upgraded github.com/alexfalkowski/bin" desc="${desc}" ready
