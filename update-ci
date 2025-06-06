@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2086,SC2155
+
+set -eo pipefail
+
+# latest_image from docker hub.
+function latest_image() {
+    local tag=$(curl -sSL "https://hub.docker.com/v2/repositories/alexfalkowski/$1/tags/?page_size=1000" | \
+        jq '.results | .[] | .name' -r | \
+        sed 's/latest//' | \
+        sort --version-sort | \
+        tail -n 1)
+    
+    echo "$tag"
+}
+
+readonly file="$1"
+readonly go_latest=$(latest_image "go")
+readonly release_latest=$(latest_image "release")
+readonly ruby_latest=$(latest_image "ruby")
+readonly k8s_latest=$(latest_image "k8s")
+
+# Replace all instances.
+sed -i \
+    -e "s/alexfalkowski\/go\:.*/alexfalkowski\/go\:${go_latest}/g" \
+    -e "s/alexfalkowski\/release\:.*/alexfalkowski\/release\:${release_latest}/g" \
+    -e "s/alexfalkowski\/ruby\:.*/alexfalkowski\/ruby\:${ruby_latest}/g" \
+    -e "s/alexfalkowski\/k8s\:.*/alexfalkowski\/k8s\:${k8s_latest}/g" \
+    $file
+
