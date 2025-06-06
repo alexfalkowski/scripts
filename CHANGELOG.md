@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.9.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.9.0) - 2025-06-06
+
+- [`7d49207`](https://github.com/alexfalkowski/scripts/commit/7d492073eb7c72aea9e954cba3ff867d75e2a9fb) feat(ci): add ability to update config (#18)
+- [`5c8905b`](https://github.com/alexfalkowski/scripts/commit/5c8905b28880152e98888a78735875d2f8b42675) build(deps): bump bin from `85504ca` to `9c21752` (#17)
+- [`d670260`](https://github.com/alexfalkowski/scripts/commit/d670260b5e1546e2908a33d5aec1e9efbab786d6) build(deps): bump bin from `810b10e` to `85504ca` (#16)
+- [`671fe28`](https://github.com/alexfalkowski/scripts/commit/671fe282a476ea405eb3df4f0ba696ca4de54576) build(ci): use alexfalkowski/ruby:1.31 (#15)
+
 ## [v0.8.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.8.0) - 2025-05-29
 
 - [`fa8158c`](https://github.com/alexfalkowski/scripts/commit/fa8158ce0ff8bebdeba0d1902b6dfcc2aadd8a0c) feat(update-submodule): allow to pass kind and desc (#14)
