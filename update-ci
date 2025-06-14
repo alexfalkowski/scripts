@@ -9,7 +9,8 @@ function latest_image() {
         jq '.results | .[] | .name' -r | \
         sed 's/latest//' | \
         sort --version-sort | \
-        tail -n 1)
+        tail -n 1 | \
+        sed 's/\.[^.]*$//')
     
     echo "$tag"
 }
