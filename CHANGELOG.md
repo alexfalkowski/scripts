@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.11.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.11.0) - 2025-06-14
+
+- [`1fd631e`](https://github.com/alexfalkowski/scripts/commit/1fd631ee3fb18ebb6162e092951ad5b39be0f86c) feat(update-ci): remove extension (#25)
+- [`e9c311b`](https://github.com/alexfalkowski/scripts/commit/e9c311b16ca6fc823bdbda34b3ab7048469c17bd) build(deps): bump bin from `fc61209` to `c9044eb` (#24)
+- [`dda3041`](https://github.com/alexfalkowski/scripts/commit/dda30414a345714c33b3da09933730ba4372caa8) build(deps): bump bin from `255c12c` to `fc61209` (#21)
+- [`4443209`](https://github.com/alexfalkowski/scripts/commit/4443209b862530fcbe403ef5bea987c8d1a82d96) build(deps): bump bin from `9c21752` to `255c12c` (#20)
+
 ## [v0.10.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.10.0) - 2025-06-06
 
 - [`8c8449c`](https://github.com/alexfalkowski/scripts/commit/8c8449c917522b24aefc890f81c65bbc7c3012d1) feat(ci): add docker (#19)
