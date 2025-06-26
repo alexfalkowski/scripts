@@ -3,7 +3,7 @@
 
 set -eo pipefail
 
-readonly dirs=("$HOME/code/go-client-template" "$HOME/code/go-service-template" "$HOME/code/bezeichner" "$HOME/code/migrieren" "$HOME/code/standort" "$HOME/code/status" "$HOME/code/web" "$HOME/code/sasha" "$HOME/code/sashactl")
+readonly dirs=("$HOME/code/go-client-template" "$HOME/code/go-service-template" "$HOME/code/bezeichner" "$HOME/code/migrieren" "$HOME/code/standort" "$HOME/code/status" "$HOME/code/web" "$HOME/code/go-monolith")
 readonly action=$1
 
 case $action in
