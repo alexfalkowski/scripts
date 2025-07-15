@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   lint:
     docker:
-      - image: alexfalkowski/ruby:1.35
+      - image: alexfalkowski/ruby:1.42
     steps:
       - checkout
       - run: git submodule sync
@@ -25,7 +25,7 @@ jobs:
     resource_class: large
   release:
     docker:
-      - image: alexfalkowski/release:3.24
+      - image: alexfalkowski/release:3.31
     steps:
       - checkout
       - run: release
