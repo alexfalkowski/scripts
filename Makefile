@@ -4,4 +4,4 @@ include bin/build/make/git.mak
 
 # Lint all scripts.
 scripts-lint:
-	shellcheck ruby-* update-*
+	@shellcheck ruby-* update-*
