@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.13.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.13.0) - 2025-07-25
+
+- [`ea43b4b`](https://github.com/alexfalkowski/scripts/commit/ea43b4b66b96b5160845a2a1927a921ebacce9f9) feat(update-all-dep): add update ci (#32)
+- [`9812019`](https://github.com/alexfalkowski/scripts/commit/981201915218389ee73b03c4d8bf0eab53cb8cc2) build(deps): bump bin from `a13f4bb` to `911aa21` (#31)
+- [`fa7056c`](https://github.com/alexfalkowski/scripts/commit/fa7056cb820d1338e6b93974aab7d5a8a1671fda) build(ci): use alexfalkowski/ruby:1.42 (#30)
+- [`66ce8fc`](https://github.com/alexfalkowski/scripts/commit/66ce8fc0a9c97e272b8eaff7a6d6e178712e826a) build(deps): bump bin from `07bcffa` to `a13f4bb` (#29)
+- [`2107cf3`](https://github.com/alexfalkowski/scripts/commit/2107cf33d33ecd2986d99332a1cc1cc77140ba52) build(deps): bump bin from `ce6b0e8` to `07bcffa` (#28)
+- [`31a44fb`](https://github.com/alexfalkowski/scripts/commit/31a44fb4f00b381b39658f33baec4e2096931f89) build(deps): bump bin from `c9044eb` to `ce6b0e8` (#27)
+
 ## [v0.12.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.12.0) - 2025-06-26
 
 - [`33e1543`](https://github.com/alexfalkowski/scripts/commit/33e154321b472262659fc9bf9ec1f32acb05100f) feat(update-all-dep): remove sasha (#26)
