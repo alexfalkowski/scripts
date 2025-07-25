@@ -35,6 +35,13 @@ case $action in
     done
     ;;
 
+  ci)
+    for dir in "${dirs[@]}"
+    do
+        (cd "$dir" && update-ci)
+    done
+    ;;
+
   done)
     for dir in "${dirs[@]}"
     do
