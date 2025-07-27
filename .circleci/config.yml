@@ -23,19 +23,21 @@ jobs:
       - run: make scripts-lint
       - run: make lint
     resource_class: large
-  release:
+  version:
     docker:
-      - image: alexfalkowski/release:4.4
+      - image: alexfalkowski/release:5.2
     steps:
       - checkout
-      - run: release
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run: version
     resource_class: large
 
 workflows:
   scripts:
     jobs:
       - lint
-      - release:
+      - version:
           context: gh
           requires:
             - lint
