@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.15.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.15.0) - 2025-09-20
+
+- [`b17b5b9`](https://github.com/alexfalkowski/scripts/commit/b17b5b9414a5c0ed40713082af06b880629b006d) feat(deps): update go (#50)
+
 ## [v0.14.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.14.0) - 2025-09-20
 
 - [`d8bab4a`](https://github.com/alexfalkowski/scripts/commit/d8bab4a14b96fdc1aa62d0b8c38231f1a0f81424) feat(purge): rename to update (#49)
