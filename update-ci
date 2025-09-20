@@ -5,42 +5,41 @@ set -eo pipefail
 
 # latest_image from docker hub.
 function latest_image() {
-    local tag=$(curl -sSL "https://hub.docker.com/v2/repositories/alexfalkowski/$1/tags/?page_size=1000" | \
-        jq '.results | .[] | .name' -r | \
-        sed 's/latest//' | \
-        sort --version-sort | \
-        tail -n 1 | \
-        sed 's/\.[^.]*$//')
-    
-    echo "$tag"
+	local tag=$(curl -sSL "https://hub.docker.com/v2/repositories/alexfalkowski/$1/tags/?page_size=1000" |
+		jq '.results | .[] | .name' -r |
+		sed 's/latest//' |
+		sort --version-sort |
+		tail -n 1 |
+		sed 's/\.[^.]*$//')
+
+	echo "$tag"
 }
 
 # update_config to the latest images.
 function update_config() {
-    readonly file="$1"
-    readonly go_latest=$(latest_image "go")
-    readonly release_latest=$(latest_image "release")
-    readonly ruby_latest=$(latest_image "ruby")
-    readonly k8s_latest=$(latest_image "k8s")
-    readonly docker_latest=$(latest_image "docker")
+	readonly file="$1"
+	readonly go_latest=$(latest_image "go")
+	readonly release_latest=$(latest_image "release")
+	readonly ruby_latest=$(latest_image "ruby")
+	readonly k8s_latest=$(latest_image "k8s")
+	readonly docker_latest=$(latest_image "docker")
 
-    # Replace all instances.
-    sed -i \
-        -e "s/alexfalkowski\/go\:.*/alexfalkowski\/go\:${go_latest}/g" \
-        -e "s/alexfalkowski\/release\:.*/alexfalkowski\/release\:${release_latest}/g" \
-        -e "s/alexfalkowski\/ruby\:.*/alexfalkowski\/ruby\:${ruby_latest}/g" \
-        -e "s/alexfalkowski\/k8s\:.*/alexfalkowski\/k8s\:${k8s_latest}/g" \
-        -e "s/alexfalkowski\/docker\:.*/alexfalkowski\/docker\:${docker_latest}/g" \
-        $file
+	# Replace all instances.
+	sed -i \
+		-e "s/alexfalkowski\/go\:.*/alexfalkowski\/go\:${go_latest}/g" \
+		-e "s/alexfalkowski\/release\:.*/alexfalkowski\/release\:${release_latest}/g" \
+		-e "s/alexfalkowski\/ruby\:.*/alexfalkowski\/ruby\:${ruby_latest}/g" \
+		-e "s/alexfalkowski\/k8s\:.*/alexfalkowski\/k8s\:${k8s_latest}/g" \
+		-e "s/alexfalkowski\/docker\:.*/alexfalkowski\/docker\:${docker_latest}/g" \
+		$file
 }
 
 make name=ci new-build
 
 if [ -f .circleci/continue_config.yml ]; then
-  update_config .circleci/continue_config.yml
+	update_config .circleci/continue_config.yml
 else
-  update_config .circleci/config.yml
+	update_config .circleci/config.yml
 fi
 
 make msg="use latest published images" ready
-

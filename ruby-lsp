@@ -7,7 +7,7 @@ make dep
 
 # Services have ruby in the test folder.
 if [ -f test/Gemfile ]; then
-  (cd test && bundle exec ruby-lsp)
+	(cd test && bundle exec ruby-lsp)
 else
-  bundle exec ruby-lsp
+	bundle exec ruby-lsp
 fi
