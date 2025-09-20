@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.14.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.14.0) - 2025-09-20
+
+- [`d8bab4a`](https://github.com/alexfalkowski/scripts/commit/d8bab4a14b96fdc1aa62d0b8c38231f1a0f81424) feat(purge): rename to update (#49)
+- [`86c41ff`](https://github.com/alexfalkowski/scripts/commit/86c41ff35f18b288c7f8156ec571b33875d00512) build(deps): bump bin from `0d75f32` to `870aeb4` (#48)
+- [`3552790`](https://github.com/alexfalkowski/scripts/commit/3552790afd64686a1364f3ceb8ed3d1ca3156e3c) build(ci): use latest published images (#47)
+- [`a589199`](https://github.com/alexfalkowski/scripts/commit/a589199b4b965cd0217171515d457f3f66e6604a) build(deps): bump bin from `78fd47f` to `0d75f32` (#46)
+- [`a0ca1da`](https://github.com/alexfalkowski/scripts/commit/a0ca1da5cc18b4f61e06bf28759e1b612ffe9ee5) build(deps): bump bin from `901fb2b` to `78fd47f` (#45)
+- [`6763a4a`](https://github.com/alexfalkowski/scripts/commit/6763a4a464688de338450648836adb4efe40a4e1) build(deps): bump bin from `e92253b` to `901fb2b` (#44)
+- [`1f31553`](https://github.com/alexfalkowski/scripts/commit/1f31553dc6dab7016f9d30dbb3a1805bbaa80aa3) build(ci): use latest published images (#43)
+- [`21542b2`](https://github.com/alexfalkowski/scripts/commit/21542b280b315c04038f08454511bbda756f1c54) build(deps): bump bin from `bf35764` to `e92253b` (#42)
+- [`d33bb2b`](https://github.com/alexfalkowski/scripts/commit/d33bb2b3ffd519734e7a483eed49dc391929371a) build(deps): bump bin from `4dda9b0` to `bf35764` (#41)
+- [`c97d4b2`](https://github.com/alexfalkowski/scripts/commit/c97d4b2d9fd9a0206dbac5574de0c3e7a484bf16) build(ci): use latest published images (#40)
+- [`b574575`](https://github.com/alexfalkowski/scripts/commit/b57457552e1814df62fe1947a9cf5e418a2b9833) build(deps): bump bin from `22b4d36` to `4dda9b0` (#39)
+- [`aee15a5`](https://github.com/alexfalkowski/scripts/commit/aee15a5fe13bdd0528b06e68feb1af0b34aecd9c) build(ci): use latest published images (#38)
+- [`7504528`](https://github.com/alexfalkowski/scripts/commit/750452823d809f1b4c8f7a83990c5f0418765cfc) build(deps): bump bin from `fe4b684` to `22b4d36` (#37)
+- [`3bcd1d0`](https://github.com/alexfalkowski/scripts/commit/3bcd1d053d176ea6dc4d2bf129b57c5c58acc4c4) build(ci): use latest published images (#36)
+- [`5d87e45`](https://github.com/alexfalkowski/scripts/commit/5d87e45c7a731bfb84341080ce185a217004085a) build(ci): update submodule (#35)
+- [`b717b2d`](https://github.com/alexfalkowski/scripts/commit/b717b2de7b35d9219335e2c2c7a84ccaba7aa69d) build(ci): use latest published images (#34)
+- [`7c6b964`](https://github.com/alexfalkowski/scripts/commit/7c6b96450011738a3940f7dfaa6fbb870dfdbe59) build(deps): bump bin from `911aa21` to `b4da06c` (#33)
+
 ## [v0.13.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.13.0) - 2025-07-25
 
 - [`ea43b4b`](https://github.com/alexfalkowski/scripts/commit/ea43b4b66b96b5160845a2a1927a921ebacce9f9) feat(update-all-dep): add update ci (#32)
