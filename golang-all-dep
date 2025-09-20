@@ -2,10 +2,10 @@
 
 set -eo pipefail
 
-go install github.com/alexfalkowski/gocovmerge/v2@v2.10.0
+go install github.com/alexfalkowski/gocovmerge/v2@v2.15.0
 go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
-go install gotest.tools/gotestsum@v1.12.3
-go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.35.0
+go install gotest.tools/gotestsum@v1.13.0
+go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.37.0
 go install github.com/loov/goda@latest
-go install github.com/air-verse/air@v1.62.0
+go install github.com/air-verse/air@v1.63.0
 go install github.com/lasorda/protobuf-language-server@master
