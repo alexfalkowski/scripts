@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.16.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.16.0) - 2025-11-11
+
+- [`6543370`](https://github.com/alexfalkowski/scripts/commit/6543370fb1b0fcc761be18dd7e742baca71ce574) feat(go): update deps (#59)
+- [`47e3999`](https://github.com/alexfalkowski/scripts/commit/47e399930c8e2566b9a76fc9f0ceba01c87cf708) build(deps): bump bin from `5563606` to `ecccdf6` (#58)
+- [`526ec18`](https://github.com/alexfalkowski/scripts/commit/526ec181ddff6c381b5e1bcac089cdefbf647fe5) build(deps): bump bin from `09a61a1` to `5563606` (#57)
+- [`b00f690`](https://github.com/alexfalkowski/scripts/commit/b00f690d3896187736d65257a9e02d6e8373bb16) build(deps): bump bin from `6aa86c4` to `09a61a1` (#56)
+- [`a8926a4`](https://github.com/alexfalkowski/scripts/commit/a8926a4dc5f21ad120934f67fe7310fd4dae6c15) build(deps): bump bin from `7794421` to `6aa86c4` (#55)
+- [`62840c8`](https://github.com/alexfalkowski/scripts/commit/62840c8cf484848405d293fa3ceb854b38bafbaf) build(ci): use blobless (#54)
+- [`b4e548e`](https://github.com/alexfalkowski/scripts/commit/b4e548e4ae2ed6fd4c5eba4dd52fe7bccd3d70c8) build(deps): bump bin from `d437cb4` to `7794421` (#53)
+- [`bfb3728`](https://github.com/alexfalkowski/scripts/commit/bfb37284e24b11c8f530e42ff31aacc4211d7a8d) build(ci): use latest published images (#52)
+- [`8dbeaad`](https://github.com/alexfalkowski/scripts/commit/8dbeaad7d186eb6f9d0cadd1b0b5b1df28affe46) build(deps): bump bin from `870aeb4` to `d437cb4` (#51)
+
 ## [v0.15.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.15.0) - 2025-09-20
 
 - [`b17b5b9`](https://github.com/alexfalkowski/scripts/commit/b17b5b9414a5c0ed40713082af06b880629b006d) feat(deps): update go (#50)
