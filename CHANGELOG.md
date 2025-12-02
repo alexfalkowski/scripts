@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.19.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.19.0) - 2025-12-02
+
+- [`f252c88`](https://github.com/alexfalkowski/scripts/commit/f252c889fe7b0eee285ccdaf541d0f487a2511c7) feat(update-all): add go-health to libs (#62)
+
 ## [v0.18.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.18.0) - 2025-11-17
 
 - [`aac87eb`](https://github.com/alexfalkowski/scripts/commit/aac87ebdefbe21c188cb0e03896d7462b84dd172) feat(update-all): remove docker (#61)
