@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.20.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.20.0) - 2025-12-04
+
+- [`d46dd05`](https://github.com/alexfalkowski/scripts/commit/d46dd05c959e3b83a43a60219de152b78ffb8249) feat(update-all): move to update (#65)
+- [`ab5d7ff`](https://github.com/alexfalkowski/scripts/commit/ab5d7ff71515f900868ffc3a10fad2e814379fe8) build(deps): bump bin from `5ed27e1` to `6174b3d` (#64)
+- [`4c63cd3`](https://github.com/alexfalkowski/scripts/commit/4c63cd3db2df9cb30b11557f3512d0f09732241a) build(deps): bump bin from `ecccdf6` to `5ed27e1` (#63)
+
 ## [v0.19.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.19.0) - 2025-12-02
 
 - [`f252c88`](https://github.com/alexfalkowski/scripts/commit/f252c889fe7b0eee285ccdaf541d0f487a2511c7) feat(update-all): add go-health to libs (#62)
