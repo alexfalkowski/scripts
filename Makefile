@@ -4,4 +4,4 @@ include bin/build/make/git.mak
 
 # Lint all scripts.
 scripts-lint:
-	@shellcheck golang-all-dep ruby*  update*
+	@shellcheck deps lsp  update*
