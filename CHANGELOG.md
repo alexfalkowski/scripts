@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.21.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.21.0) - 2025-12-21
+
+- [`1371f34`](https://github.com/alexfalkowski/scripts/commit/1371f344a9d0f1fb3a822ea12606a5bc88b122cc) feat(deps): add bundler to dependabot (#67)
+- [`aacfe30`](https://github.com/alexfalkowski/scripts/commit/aacfe30546f89014743ed30f22210767b567b8ae) build(deps): bump bin from `6174b3d` to `b50090c` (#66)
+
 ## [v0.20.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.20.0) - 2025-12-04
 
 - [`d46dd05`](https://github.com/alexfalkowski/scripts/commit/d46dd05c959e3b83a43a60219de152b78ffb8249) feat(update-all): move to update (#65)
