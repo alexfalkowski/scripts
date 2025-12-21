@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.24.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.24.0) - 2025-12-21
+
+- [`422ceea`](https://github.com/alexfalkowski/scripts/commit/422ceea78b9242e06657667daf2e8db4423edfff) feat(deps): update bundler to v4.0.2 (#70)
+
 ## [v0.23.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.23.0) - 2025-12-21
 
 - [`bbc726a`](https://github.com/alexfalkowski/scripts/commit/bbc726a9d708160802d90e5c733ba714b6e1c472) feat(deps): bump rubocop from 1.81.7 to 1.82.0 (#69)
