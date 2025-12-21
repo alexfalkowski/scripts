@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.25.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.25.0) - 2025-12-21
+
+- [`431c293`](https://github.com/alexfalkowski/scripts/commit/431c2933d13645382d8a4effceeba95e1c5cfc50) feat(ruby): rename files (#71)
+
 ## [v0.24.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.24.0) - 2025-12-21
 
 - [`422ceea`](https://github.com/alexfalkowski/scripts/commit/422ceea78b9242e06657667daf2e8db4423edfff) feat(deps): update bundler to v4.0.2 (#70)
