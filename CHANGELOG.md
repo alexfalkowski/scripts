@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.26.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.26.0) - 2025-12-25
+
+- [`efb4f71`](https://github.com/alexfalkowski/scripts/commit/efb4f717abef2608e9dfe30099be14911ca4580d) feat(deps): bump rubocop from 1.82.0 to 1.82.1 (#73)
+- [`5f120a3`](https://github.com/alexfalkowski/scripts/commit/5f120a373d9014f5431c9a69c91c352686ecf062) build(deps): bump bin from `b50090c` to `2e6d234` (#72)
+
 ## [v0.25.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.25.0) - 2025-12-21
 
 - [`431c293`](https://github.com/alexfalkowski/scripts/commit/431c2933d13645382d8a4effceeba95e1c5cfc50) feat(ruby): rename files (#71)
