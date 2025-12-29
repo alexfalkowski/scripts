@@ -2,22 +2,18 @@
 
 set -eo pipefail
 
-readonly kind=$1
-readonly version=$2
-readonly desc=$3
+readonly version=$1
+readonly desc=$2
 
 make name=deps new-test
 
-case $kind in
-lib)
-  gem install bundler -v "$version"
-  make submodule update-bundler
-  ;;
-
-svc)
+# Services have ruby in the test folder.
+if [ -f test/Gemfile ]; then
   (cd test && gem install bundler -v "$version")
   make submodule ruby-update-bundler
-  ;;
-esac
+else
+  gem install bundler -v "$version"
+  make submodule update-bundler
+fi
 
 make msg="upgraded bundler to $version" desc="${desc}" ready
