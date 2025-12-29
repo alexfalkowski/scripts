@@ -54,6 +54,12 @@ ci)
   done
   ;;
 
+bundler)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && update-bundler "$3" "$4")
+  done
+  ;;
+
 done)
   for dir in "${directories[@]}"; do
     (cd "$dir" && make done)
