@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   lint:
     docker:
-      - image: alexfalkowski/ruby:1.59
+      - image: alexfalkowski/ruby:1.80
     steps:
       - checkout:
           method: blobless
@@ -26,7 +26,7 @@ jobs:
     resource_class: large
   version:
     docker:
-      - image: alexfalkowski/release:5.16
+      - image: alexfalkowski/release:5.35
     steps:
       - checkout:
           method: blobless
