@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.28.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.28.0) - 2026-01-03
+
+- [`4746de6`](https://github.com/alexfalkowski/scripts/commit/4746de605ce9631b8d8ef12ce9ad5f647a98f0e5) feat(libs): move dirs (#80)
+- [`6e3c9e6`](https://github.com/alexfalkowski/scripts/commit/6e3c9e69e778e0b8e1666a303d7385c6d5587000) build(deps): bump bin from `664d367` to `302ba69` (#79)
+- [`401b072`](https://github.com/alexfalkowski/scripts/commit/401b072f38a122013e287ab76fed9fd59b6f0164) build(deps): bump bin from `1248b9e` to `664d367` (#78)
+- [`0c7bd7b`](https://github.com/alexfalkowski/scripts/commit/0c7bd7b335548cbc933d9d4ab0598de0111dc1f6) test(deps): upgraded bundler to 4.0.3 (#77)
+- [`0253425`](https://github.com/alexfalkowski/scripts/commit/02534251e8c1f37d558d1403c827c5b3ed3ef174) build(deps): upgraded github.com/alexfalkowski/bin (#76)
+- [`3ee9762`](https://github.com/alexfalkowski/scripts/commit/3ee97621f9951de4e16eda8c438385b0eb7c8bd6) build(make): add PHONY (#75)
+
 ## [v0.27.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.27.0) - 2025-12-29
 
 - [`57efc61`](https://github.com/alexfalkowski/scripts/commit/57efc613acefaec5f3ee499c125619487aa32c13) feat(bundler): add ability to update (#74)
