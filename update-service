@@ -1,50 +1,50 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1010
+# shellcheck disable=SC1010,SC1091,SC2154
 
 set -eo pipefail
 
-readonly dirs=("$HOME/code/go-client-template" "$HOME/code/go-service-template" "$HOME/code/bezeichner" "$HOME/code/migrieren" "$HOME/code/standort" "$HOME/code/status" "$HOME/code/web" "$HOME/code/go-monolith")
+source "$(dirname "$0")"/lib/dirs.sh
 readonly action=$1
 
 case $action in
 new)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && update-dep "$2" "$3" "$4")
   done
   ;;
 
 latest)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && make latest)
   done
   ;;
 
 purge)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && make purge)
   done
   ;;
 
 bundler)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && update-bundler "svc" "$2" "$3")
   done
   ;;
 
 submodule)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && update-submodule "$2" "$3")
   done
   ;;
 
 ci)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && update-ci)
   done
   ;;
 
 done)
-  for dir in "${dirs[@]}"; do
+  for dir in "${services[@]}"; do
     (cd "$dir" && make done)
   done
   ;;
