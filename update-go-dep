@@ -2,13 +2,13 @@
 # frozen_string_literal: true
 
 if File.exist?('test/Gemfile')
-  deps = `make go-outdated-dep`.split("\n").drop(1)
+  deps = `make go-outdated-dep`.split("\n")
   deps.each do |d|
     m, = d.split
     `make module=#{m} go-update-dep`
   end
 else
-  deps = `make outdated-dep`.split("\n").drop(1)
+  deps = `make outdated-dep`.split("\n")
   deps.each do |d|
     m, = d.split
     `make module=#{m} update-dep`
