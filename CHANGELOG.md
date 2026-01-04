@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.28.1](https://github.com/alexfalkowski/scripts/releases/tag/v0.28.1) - 2026-01-04
+
+- [`71b29b3`](https://github.com/alexfalkowski/scripts/commit/71b29b37b4b724d682a816b879084f85f20cc40c) fix(update-go-dep): remove drop (#82)
+- [`12caace`](https://github.com/alexfalkowski/scripts/commit/12caace2e552baf0cd0abf9521a8cbc03e159381) build(ci): use latest published images (#81)
+
 ## [v0.28.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.28.0) - 2026-01-03
 
 - [`4746de6`](https://github.com/alexfalkowski/scripts/commit/4746de605ce9631b8d8ef12ce9ad5f647a98f0e5) feat(libs): move dirs (#80)
