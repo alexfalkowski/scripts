@@ -25,6 +25,12 @@ purge)
   done
   ;;
 
+dep)
+  for dir in "${services[@]}"; do
+    (cd "$dir" && make dep)
+  done
+  ;;
+
 bundler)
   for dir in "${services[@]}"; do
     (cd "$dir" && update-bundler "svc" "$2" "$3")
