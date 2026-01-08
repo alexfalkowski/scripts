@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.29.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.29.0) - 2026-01-08
+
+- [`deb86ff`](https://github.com/alexfalkowski/scripts/commit/deb86ffa2481c85dd261e4914916bc911047eb37) feat(update): add dep (#83)
+
 ## [v0.28.1](https://github.com/alexfalkowski/scripts/releases/tag/v0.28.1) - 2026-01-04
 
 - [`71b29b3`](https://github.com/alexfalkowski/scripts/commit/71b29b37b4b724d682a816b879084f85f20cc40c) fix(update-go-dep): remove drop (#82)
