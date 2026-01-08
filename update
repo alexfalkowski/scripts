@@ -39,6 +39,12 @@ purge)
   done
   ;;
 
+dep)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && make dep)
+  done
+  ;;
+
 submodule)
   for dir in "${directories[@]}"; do
     (cd "$dir" && update-submodule "$3" "$4")
