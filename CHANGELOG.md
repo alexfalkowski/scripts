@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.29.1](https://github.com/alexfalkowski/scripts/releases/tag/v0.29.1) - 2026-01-13
+
+- [`3688658`](https://github.com/alexfalkowski/scripts/commit/36886580251ecad09c08ffb7fed5bd133e95ae21) fix(update-service): use update-service-dep (#85)
+- [`4e5d4da`](https://github.com/alexfalkowski/scripts/commit/4e5d4dae341be91f5c786d3ecc8dfab31d74ca06) build(deps): bump bin from `302ba69` to `33a38ff` (#84)
+
 ## [v0.29.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.29.0) - 2026-01-08
 
 - [`deb86ff`](https://github.com/alexfalkowski/scripts/commit/deb86ffa2481c85dd261e4914916bc911047eb37) feat(update): add dep (#83)
