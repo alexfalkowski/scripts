@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.30.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.30.0) - 2026-01-22
+
+- [`b1a2227`](https://github.com/alexfalkowski/scripts/commit/b1a22275979c4ee3c8100a16a34a26600a435a1a) feat(deps): bump ruby-lsp from 0.26.4 to 0.26.5 (#90)
+- [`1c7d2cf`](https://github.com/alexfalkowski/scripts/commit/1c7d2cf97a911c73f8f3473a74186635aba07fdf) build(deps): bump bin from `07eff55` to `50ee2c1` (#89)
+- [`7ee0e94`](https://github.com/alexfalkowski/scripts/commit/7ee0e9495f95e22f2ea53bb34f342677702aa37d) build(license): move to mit (#88)
+- [`16ba1a1`](https://github.com/alexfalkowski/scripts/commit/16ba1a17fe52c686df12a4f3b59a2c515c964ba8) build(deps): bump bin from `42dc7ae` to `07eff55` (#87)
+- [`c9ca0c9`](https://github.com/alexfalkowski/scripts/commit/c9ca0c9048cd1aa7186f99599190c90cac913eb7) build(deps): bump bin from `33a38ff` to `42dc7ae` (#86)
+
 ## [v0.29.1](https://github.com/alexfalkowski/scripts/releases/tag/v0.29.1) - 2026-01-13
 
 - [`3688658`](https://github.com/alexfalkowski/scripts/commit/36886580251ecad09c08ffb7fed5bd133e95ae21) fix(update-service): use update-service-dep (#85)
