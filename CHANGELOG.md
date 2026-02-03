@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.32.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.32.0) - 2026-02-03
+
+- [`06e5b6c`](https://github.com/alexfalkowski/scripts/commit/06e5b6c2ef953c9564382f530eaa04a79717dbe7) feat(deps): bump rubocop from 1.84.0 to 1.84.1 (#92)
+
 ## [v0.31.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.31.0) - 2026-01-28
 
 - [`d2fd9b7`](https://github.com/alexfalkowski/scripts/commit/d2fd9b710f9844c6a234113604cfed04f392691d) feat(deps): bump rubocop from 1.82.1 to 1.84.0 (#91)
