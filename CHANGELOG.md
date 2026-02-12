@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.34.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.34.0) - 2026-02-12
+
+- [`158536f`](https://github.com/alexfalkowski/scripts/commit/158536f96f47c2d39e3f6dab3475801cf01cac67) feat(deps): update go install (#96)
+- [`068e4e8`](https://github.com/alexfalkowski/scripts/commit/068e4e8f537bd819709a7db8428465a2cac2dd0e) build(deps): bump bin from `dc92464` to `60f3a4b` (#95)
+
 ## [v0.33.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.33.0) - 2026-02-10
 
 - [`771d20a`](https://github.com/alexfalkowski/scripts/commit/771d20acfa8f9e877612c5b08c0172494558a7c2) feat(deps): bump ruby-lsp from 0.26.5 to 0.26.6 (#94)
