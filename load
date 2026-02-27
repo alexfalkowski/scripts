@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# You need to change the telemetry configuration below to match your setup.
+# telemetry:
+#   logger:
+#     kind: otlp
+#     level: info
+#     url: http://localhost:4318/v1/logs
+#   metrics:
+#     kind: otlp
+#     url: http://localhost:4318/v1/metrics
+#   tracer:
+#     kind: otlp
+#     url: http://localhost:4318/v1/traces
+
+source "$(dirname "$0")"/lib/dirs.sh
+readonly service=$1
+
+case $service in
+standort)
+  echo "POST http://localhost:11000/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
+  ;;
+
+esac
