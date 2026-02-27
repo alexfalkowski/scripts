@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.38.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.38.0) - 2026-02-27
+
+- [`7bb8cab`](https://github.com/alexfalkowski/scripts/commit/7bb8cab7eea6967f7a4745660712260b6760bc5a) feat(load): add ability to verify standort (#101)
+
 ## [v0.37.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.37.0) - 2026-02-27
 
 - [`672f6a3`](https://github.com/alexfalkowski/scripts/commit/672f6a32e22445fe7829283e09ec3372f908e313) feat(deps): bump rubocop from 1.84.2 to 1.85.0 (#100)
