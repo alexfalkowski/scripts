@@ -16,13 +16,28 @@ set -eo pipefail
 #     url: http://localhost:4318/v1/traces
 
 source "$(dirname "$0")"/lib/dirs.sh
-readonly service=$1
+readonly kind=$1
+readonly service=$2
 
-case $service in
-standort)
-  echo "POST http://localhost:11000/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
-  ;;
-bezeichner)
-  echo "POST http://localhost:11000/bezeichner.v1.Service/GenerateIdentifiers" | vegeta attack -duration=30s -body "data/bezeichner.json" -header "Content-Type: application/json" | tee "data/bezeichner.bin" | vegeta report
-  ;;
+case $kind in
+  http)
+    case $service in
+    standort)
+      echo "POST http://localhost:11000/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
+      ;;
+    bezeichner)
+      echo "POST http://localhost:11000/bezeichner.v1.Service/GenerateIdentifiers" | vegeta attack -duration=30s -body "data/bezeichner.json" -header "Content-Type: application/json" | tee "data/bezeichner.bin" | vegeta report
+      ;;
+    esac
+    ;;
+  grpc)
+    case $service in
+    standort)
+      ghz --insecure -n 2000 -c 20 --call standort.v2.Service/GetLocation -d '{ "ip": "92.211.2.113" }' localhost:12000
+      ;;
+    bezeichner)
+      ghz --insecure -n 2000 -c 20 --call bezeichner.v1.Service/GenerateIdentifiers -d '{ "application": "ulid", "count": 10 }' localhost:12000
+      ;;
+    esac
+    ;;
 esac
