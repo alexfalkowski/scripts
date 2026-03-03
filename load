@@ -2,18 +2,9 @@
 
 set -eo pipefail
 
-# You need to change the telemetry configuration below to match your setup.
-# telemetry:
-#   logger:
-#     kind: otlp
-#     level: info
-#     url: http://localhost:4318/v1/logs
-#   metrics:
-#     kind: otlp
-#     url: http://localhost:4318/v1/metrics
-#   tracer:
-#     kind: otlp
-#     url: http://localhost:4318/v1/traces
+# To run locally, run the following commands:
+# - ~/code/standort/standort server -i file:config/standort.yml
+# - ~/code/bezeichner/bezeichner server -i file:config/bezeichner.yml
 
 source "$(dirname "$0")"/lib/dirs.sh
 readonly kind=$1
@@ -23,20 +14,20 @@ case $kind in
   http)
     case $service in
     standort)
-      echo "POST http://localhost:11000/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
+      echo "POST http://localhost:11002/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
       ;;
     bezeichner)
-      echo "POST http://localhost:11000/bezeichner.v1.Service/GenerateIdentifiers" | vegeta attack -duration=30s -body "data/bezeichner.json" -header "Content-Type: application/json" | tee "data/bezeichner.bin" | vegeta report
+      echo "POST http://localhost:11001/bezeichner.v1.Service/GenerateIdentifiers" | vegeta attack -duration=30s -body "data/bezeichner.json" -header "Content-Type: application/json" | tee "data/bezeichner.bin" | vegeta report
       ;;
     esac
     ;;
   grpc)
     case $service in
     standort)
-      ghz --insecure -n 2000 -c 20 --call standort.v2.Service/GetLocation -d '{ "ip": "92.211.2.113" }' localhost:12000
+      ghz --insecure -n 2000 -c 20 --call standort.v2.Service/GetLocation -d '{ "ip": "92.211.2.113" }' localhost:12002
       ;;
     bezeichner)
-      ghz --insecure -n 2000 -c 20 --call bezeichner.v1.Service/GenerateIdentifiers -d '{ "application": "ulid", "count": 10 }' localhost:12000
+      ghz --insecure -n 2000 -c 20 --call bezeichner.v1.Service/GenerateIdentifiers -d '{ "application": "ulid", "count": 10 }' localhost:12001
       ;;
     esac
     ;;

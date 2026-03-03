@@ -1,0 +1,36 @@
+environment: production
+health:
+  duration: 1s
+  timeout: 1s
+id:
+  kind: ulid
+limiter:
+  kind: user-agent
+  tokens: 1000
+  interval: 1s
+telemetry:
+  logger:
+    kind: otlp
+    level: info
+    url: http://localhost:4318/v1/logs
+  metrics:
+    kind: otlp
+    url: http://localhost:4318/v1/metrics
+  tracer:
+    kind: otlp
+    url: http://localhost:4318/v1/traces
+transport:
+  http:
+    address: tcp://:11002
+    retry:
+      attempts: 3
+      backoff: 100ms
+      timeout: 3s
+    timeout: 5s
+  grpc:
+    address: tcp://:12002
+    retry:
+      attempts: 3
+      backoff: 100ms
+      timeout: 3s
+    timeout: 5s
