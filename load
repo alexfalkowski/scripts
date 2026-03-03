@@ -22,5 +22,7 @@ case $service in
 standort)
   echo "POST http://localhost:11000/standort.v2.Service/GetLocation" | vegeta attack -duration=30s -body "data/standort.json" -header "Content-Type: application/json" | tee "data/standort.bin" | vegeta report
   ;;
-
+bezeichner)
+  echo "POST http://localhost:11000/bezeichner.v1.Service/GenerateIdentifiers" | vegeta attack -duration=30s -body "data/bezeichner.json" -header "Content-Type: application/json" | tee "data/bezeichner.bin" | vegeta report
+  ;;
 esac
