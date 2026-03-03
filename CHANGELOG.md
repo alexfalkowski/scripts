@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.40.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.40.0) - 2026-03-03
+
+- [`03e28d2`](https://github.com/alexfalkowski/scripts/commit/03e28d2a1c87162038090eb381b14b7dff5010b5) feat(load): support gRPC (#104)
+
 ## [v0.39.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.39.0) - 2026-03-03
 
 - [`a68b007`](https://github.com/alexfalkowski/scripts/commit/a68b007eb5059ec663fdca921b3ee5df0bd601ff) feat(load): add bezeichner (#102)
