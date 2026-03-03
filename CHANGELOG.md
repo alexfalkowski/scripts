@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.39.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.39.0) - 2026-03-03
+
+- [`a68b007`](https://github.com/alexfalkowski/scripts/commit/a68b007eb5059ec663fdca921b3ee5df0bd601ff) feat(load): add bezeichner (#102)
+
 ## [v0.38.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.38.0) - 2026-02-27
 
 - [`7bb8cab`](https://github.com/alexfalkowski/scripts/commit/7bb8cab7eea6967f7a4745660712260b6760bc5a) feat(load): add ability to verify standort (#101)
