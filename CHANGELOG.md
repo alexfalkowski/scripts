@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.41.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.41.0) - 2026-03-03
+
+- [`624d371`](https://github.com/alexfalkowski/scripts/commit/624d3713e19705fd9fad2496bf40974a297a4f69) feat(deps): update github.com/loov/goda@v0.9.3 (#105)
+
 ## [v0.40.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.40.0) - 2026-03-03
 
 - [`03e28d2`](https://github.com/alexfalkowski/scripts/commit/03e28d2a1c87162038090eb381b14b7dff5010b5) feat(load): support gRPC (#104)
