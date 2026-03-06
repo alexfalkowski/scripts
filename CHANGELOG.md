@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.43.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.43.0) - 2026-03-06
+
+- [`22ab8f0`](https://github.com/alexfalkowski/scripts/commit/22ab8f0c358d791e618c659c43eb86b1d1f7d3f2) feat(deps): bump rubocop from 1.85.0 to 1.85.1 (#109)
+- [`eb5630d`](https://github.com/alexfalkowski/scripts/commit/eb5630d3f9df9130cc9abfa1a6af965f29621e48) build(deps): bump bin from `b165431` to `000304e` (#108)
+- [`2f04115`](https://github.com/alexfalkowski/scripts/commit/2f041158a5c89e0686c3f31b246bf2b281877b42) docs(readme): udpate with gpt-5.3-codex high (#107)
+
 ## [v0.42.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.42.0) - 2026-03-03
 
 - [`68cfcf2`](https://github.com/alexfalkowski/scripts/commit/68cfcf2b5c4e62aaa9f0078ce762fe0cc9c1634f) feat(config): allow running local (#106)
