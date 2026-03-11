@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.44.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.44.0) - 2026-03-12
+
+- [`8526a8b`](https://github.com/alexfalkowski/scripts/commit/8526a8b662f664155109aa91f903f6bdf5ca93e0) feat(deps): bump ruby-lsp from 0.26.7 to 0.26.8 (#116)
+- [`6675503`](https://github.com/alexfalkowski/scripts/commit/66755032d65bb5f4a604c7e3fa77d33176d0144b) build(deps): bump bin from `59b1ab0` to `a7996aa` (#115)
+- [`6618674`](https://github.com/alexfalkowski/scripts/commit/661867432c53130bbce3ee5ca046c24203a51154) build(ci): use alexfalkowski/release:5.58 (#114)
+- [`6f8456a`](https://github.com/alexfalkowski/scripts/commit/6f8456af08dce13140d1ee98e675133b0fcfb8fb) test(deps): upgraded bundler to 4.0.8 (#113)
+- [`87d51ee`](https://github.com/alexfalkowski/scripts/commit/87d51ee3bc7d23f0bd4bfedadef6ae6d6554bcb5) build(ci): use latest published images (#112)
+- [`7fc38ed`](https://github.com/alexfalkowski/scripts/commit/7fc38edfb08f143e89ced004ccbe3e8db6f42492) build(ci): add wait-all (#111)
+- [`f33918e`](https://github.com/alexfalkowski/scripts/commit/f33918e37e6dfebf599c3f6702430d3b4333dd34) build(deps): bump bin from `000304e` to `59b1ab0` (#110)
+
 ## [v0.43.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.43.0) - 2026-03-06
 
 - [`22ab8f0`](https://github.com/alexfalkowski/scripts/commit/22ab8f0c358d791e618c659c43eb86b1d1f7d3f2) feat(deps): bump rubocop from 1.85.0 to 1.85.1 (#109)
