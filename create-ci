@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2086,SC2155
+
+set -eo pipefail
+
+readonly name=$1
+readonly project_slug="github/alexfalkowski/$name"
+
+# Add a user SSH key.
+curl --fail -X POST "https://circleci.com/api/v2/project/${project_slug}/checkout-key" \
+    -H "Circle-Token: $CIRCLECI_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"type":"user-key"}'
+
+# Add CODECOV_TOKEN for uploads.
+curl --fail --request POST \
+    --url "https://circleci.com/api/v2/project/$project_slug/envvar" \
+    --header "Circle-Token: $CIRCLECI_API_TOKEN" \
+    --header "Content-Type: application/json" \
+    --data "{\"name\":\"CODECOV_TOKEN\",\"value\":\"$CODECOV_TOKEN\"}"
+
+# Kick off a deployment.
+curl --fail -X POST "https://circleci.com/api/v2/project/${project_slug}/pipeline" \
+    -H "Circle-Token: $CIRCLECI_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"branch":"master"}'
