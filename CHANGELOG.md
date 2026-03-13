@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.46.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.46.0) - 2026-03-13
+
+- [`265a850`](https://github.com/alexfalkowski/scripts/commit/265a850252b0235abf24fd926c84a44e844fb74a) feat(ci): create project (#119)
+
 ## [v0.45.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.45.0) - 2026-03-13
 
 - [`bc04ad6`](https://github.com/alexfalkowski/scripts/commit/bc04ad61e8f1faaa9a1355f14dfc505c086e3b02) feat(ci): add ability to create a pipeline (#118)
