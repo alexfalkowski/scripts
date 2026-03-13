@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+## [v0.45.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.45.0) - 2026-03-13
+
+- [`bc04ad6`](https://github.com/alexfalkowski/scripts/commit/bc04ad61e8f1faaa9a1355f14dfc505c086e3b02) feat(ci): add ability to create a pipeline (#118)
+- [`dd4d071`](https://github.com/alexfalkowski/scripts/commit/dd4d071ceb8549814697d61cb4bfdff0367dbeff) build(deps): upgraded github.com/alexfalkowski/bin (#117)
+
 ## [v0.44.0](https://github.com/alexfalkowski/scripts/releases/tag/v0.44.0) - 2026-03-12
 
 - [`8526a8b`](https://github.com/alexfalkowski/scripts/commit/8526a8b662f664155109aa91f903f6bdf5ca93e0) feat(deps): bump ruby-lsp from 0.26.7 to 0.26.8 (#116)
