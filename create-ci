@@ -4,7 +4,13 @@
 set -eo pipefail
 
 readonly name=$1
-readonly project_slug="github/alexfalkowski/$name"
+readonly org="github/alexfalkowski"
+readonly project_slug="$org/$name"
+
+# Create the project.
+curl -X POST "https://circleci.com/api/v2/organization/$org/project" \
+    -H "Circle-Token: $CIRCLECI_API_TOKEN" -H "Content-Type: application/json" \
+    -d "{\"name\":\"$name\"}"
 
 # Add a user SSH key.
 curl --fail -X POST "https://circleci.com/api/v2/project/${project_slug}/checkout-key" \
