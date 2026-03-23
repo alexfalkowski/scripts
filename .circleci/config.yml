@@ -26,7 +26,7 @@ jobs:
     resource_class: arm.large
   sync:
     docker:
-      - image: alexfalkowski/release:5.58
+      - image: alexfalkowski/release:6.3
     steps:
       - checkout:
           method: blobless
@@ -36,13 +36,14 @@ jobs:
     resource_class: arm.large
   version:
     docker:
-      - image: alexfalkowski/release:5.58
+      - image: alexfalkowski/release:6.3
     steps:
       - checkout:
           method: blobless
       - run: git submodule sync
       - run: git submodule update --init
       - run: version
+      - run: package
     resource_class: arm.large
   wait-all:
     docker:
@@ -63,6 +64,7 @@ workflows:
               ignore: master
       - version:
           context: gh
+          serial-group: << pipeline.project.slug >>/version
           requires:
             - lint
           filters:
