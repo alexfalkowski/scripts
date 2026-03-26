@@ -63,6 +63,12 @@ bundler)
   done
   ;;
 
+clean)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && clean)
+  done
+  ;;
+
 done)
   for dir in "${directories[@]}"; do
     (cd "$dir" && make done)

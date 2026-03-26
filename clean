@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Clean up test/vendor and vendor directories.
+if [ -d test/vendor ]; then
+  rm -rf test/vendor
+fi
+
+if [ -d vendor ]; then
+  rm -rf vendor
+fi
+
+# Get all dependencies.
+make dep
