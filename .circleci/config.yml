@@ -23,6 +23,7 @@ jobs:
             - vendor
       - run: make scripts-lint
       - run: make lint
+      - run: make sec
     resource_class: arm.large
   sync:
     docker:
