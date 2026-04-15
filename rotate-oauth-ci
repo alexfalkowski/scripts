@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Adapted from https://gist.github.com/denislemire/f4119bba6aa1ddd645695c94808e615d
+
+set -eo pipefail
+
+readonly token=$1
+readonly project=$2
+
+API_ROOT="${CIRCLECI_API_ROOT:-https://circleci.com/api/v2}"
+
+die() { printf '%s\n' "$*" >&2; exit 1; }
+
+need_cmd() { command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"; }
+
+need_cmd curl
+need_cmd jq
+
+[ -n "${token:-}" ] || die "set token"
+[ -n "${project:-}" ] || die "set project (e.g. gh/org/repo)"
+
+uri_escape() { jq -nr --arg s "$1" '$s | @uri'; }
+
+curl_cci() {
+  curl -sS -f \
+    -H "Circle-Token: ${token}" \
+    -H "Accept: application/json" \
+    "$@"
+}
+
+ENC_SLUG="$(uri_escape "${project}")"
+
+# 1) Project UUID from human slug
+PROJ_JSON="$(curl_cci "${API_ROOT}/project/${ENC_SLUG}")" || die "failed GET /project (check slug and token)"
+PROJECT_ID="$(printf '%s' "$PROJ_JSON" | jq -r '.id')"
+[ -n "$PROJECT_ID" ] && [ "$PROJECT_ID" != null ] || die "could not read project id from API response"
+
+# 2) Pipeline definition (github_oauth)
+DEFS_JSON="$(curl_cci "${API_ROOT}/projects/${PROJECT_ID}/pipeline-definitions")" || die "failed GET pipeline-definitions"
+
+pick_oauth_def_id() {
+  printf '%s' "$DEFS_JSON" | jq -r '
+    .items[]
+    | select(.config_source.provider == "github_oauth")
+    | .id' | head -n 1
+}
+
+if [ -n "${PIPELINE_DEFINITION_ID:-}" ]; then
+  PIPELINE_DEF_ID="$PIPELINE_DEFINITION_ID"
+else
+  PIPELINE_DEF_ID="$(pick_oauth_def_id)"
+fi
+[ -n "$PIPELINE_DEF_ID" ] || die "no pipeline definition with config_source.provider=github_oauth; set PIPELINE_DEFINITION_ID explicitly"
+
+# 3) Triggers on that definition
+TRIG_LIST="$(curl_cci "${API_ROOT}/projects/${PROJECT_ID}/pipeline-definitions/${PIPELINE_DEF_ID}/triggers")" || die "failed GET triggers"
+
+oauth_trigger_ids() {
+  printf '%s' "$TRIG_LIST" | jq -r '
+    .items[]
+    | select(.event_source.provider == "github_oauth")
+    | .id'
+}
+
+if [ -n "${TRIGGER_ID:-}" ]; then
+  TID="$TRIGGER_ID"
+else
+  count="$(oauth_trigger_ids | wc -l | tr -d ' ')"
+  [ "$count" -ge 1 ] || die "no github_oauth trigger on pipeline definition ${PIPELINE_DEF_ID}"
+  [ "$count" -eq 1 ] || die "multiple github_oauth triggers; set TRIGGER_ID to one of: $(oauth_trigger_ids | tr '\n' ' ')"
+  TID="$(oauth_trigger_ids | head -n 1)"
+fi
+
+# 4) Full trigger payload (for verbatim-ish recreate)
+TRIG_JSON="$(curl_cci "${API_ROOT}/projects/${PROJECT_ID}/triggers/${TID}")" || die "failed GET trigger ${TID}"
+
+# Build createTriggerRequest from GET trigger (strip read-only fields).
+CREATE_BODY="$(printf '%s' "$TRIG_JSON" | jq '
+  {
+    event_source: {
+      provider: .event_source.provider,
+      repo: { external_id: .event_source.repo.external_id }
+    }
+  }
+  + (if (.event_preset | type) == "string" and .event_preset != "" then { event_preset: .event_preset } else {} end)
+  + (if (.checkout_ref | type) == "string" and .checkout_ref != "" then { checkout_ref: .checkout_ref } else {} end)
+  + (if (.config_ref | type) == "string" and .config_ref != "" then { config_ref: .config_ref } else {} end)
+')"
+
+printf 'Project id: %s\nPipeline definition id: %s\nTrigger id: %s\n' "$PROJECT_ID" "$PIPELINE_DEF_ID" "$TID" >&2
+printf 'Recreate body:\n%s\n' "$CREATE_BODY" >&2
+
+if [ -n "${DRY_RUN:-}" ]; then
+  printf '\nDRY_RUN set — no DELETE/POST performed. Would run:\n' >&2
+  printf '  DELETE %s/projects/%s/triggers/%s\n' "$API_ROOT" "$PROJECT_ID" "$TID" >&2
+  printf '  POST %s/projects/%s/pipeline-definitions/%s/triggers\n' "$API_ROOT" "$PROJECT_ID" "$PIPELINE_DEF_ID" >&2
+  exit 0
+fi
+
+# 5) Delete then create
+curl_cci -X DELETE "${API_ROOT}/projects/${PROJECT_ID}/triggers/${TID}" >/dev/null || die "DELETE trigger failed"
+
+NEW_TRIG="$(curl_cci -X POST "${API_ROOT}/projects/${PROJECT_ID}/pipeline-definitions/${PIPELINE_DEF_ID}/triggers" \
+  -H "Content-Type: application/json" \
+  -d "$CREATE_BODY")" || die "POST create trigger failed (trigger was deleted; re-add via UI if needed)"
+
+printf '%s\n' "$NEW_TRIG" | jq .
+printf '\nNew trigger id: %s\n' "$(printf '%s' "$NEW_TRIG" | jq -r '.id')" >&2
