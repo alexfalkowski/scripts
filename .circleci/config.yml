@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   lint:
     docker:
-      - image: alexfalkowski/ruby:2.6
+      - image: alexfalkowski/ruby:2.7
     steps:
       - checkout:
           method: blobless
@@ -27,7 +27,7 @@ jobs:
     resource_class: arm.large
   sync:
     docker:
-      - image: alexfalkowski/release:7.7
+      - image: alexfalkowski/release:7.8
     steps:
       - checkout:
           method: blobless
@@ -37,7 +37,7 @@ jobs:
     resource_class: arm.large
   version:
     docker:
-      - image: alexfalkowski/release:7.7
+      - image: alexfalkowski/release:7.8
     steps:
       - checkout:
           method: blobless
@@ -48,7 +48,7 @@ jobs:
     resource_class: arm.large
   wait-all:
     docker:
-      - image: alexfalkowski/ruby:2.6
+      - image: alexfalkowski/ruby:2.7
     steps:
       - run: echo "all applicable jobs finished"
     resource_class: arm.large
