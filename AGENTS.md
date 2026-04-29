@@ -2,9 +2,7 @@
 
 ## Shared Skill
 
-Use the shared `coding-standards` skill from `./bin/skills/coding-standards`
-for coding, review, testing, documentation, and PR conventions. This file only
-covers repo-specific rules.
+Use the shared `coding-standards` skill from `bin/skills/coding-standards` for code changes, bug fixes, refactors, reviews, tests, linting, documentation, PR summaries, commits, Makefile changes, CI validation, and verification.
 
 ## Scope
 
