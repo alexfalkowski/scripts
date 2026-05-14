@@ -3,8 +3,8 @@
 
 set -eo pipefail
 
-# latest_image from docker hub.
-function latest_image() {
+# Find the newest published Docker Hub tag and drop the patch segment.
+latest_image() {
 	local tag=$(curl -sSL "https://hub.docker.com/v2/repositories/alexfalkowski/$1/tags/?page_size=1000" |
 		jq '.results | .[] | .name' -r |
 		sed 's/latest//' |
@@ -15,8 +15,8 @@ function latest_image() {
 	echo "$tag"
 }
 
-# update_config to the latest images.
-function update_config() {
+# Replace image tags in a CircleCI config with the latest published versions.
+update_config() {
 	readonly file="$1"
 	readonly go_latest=$(latest_image "go")
 	readonly release_latest=$(latest_image "release")

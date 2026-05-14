@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2155
+
+set -eo pipefail
+
+readonly dir="$HOME/code/docker"
+readonly kind=$1
+readonly package=$2
+readonly version=$3
+readonly dockerfile="$kind/Dockerfile"
+readonly makefile="$kind/Makefile"
+
+# Extract the major segment from a semantic-ish version.
+major() {
+  local value=${1#v}
+
+  echo "${value%%.*}"
+}
+
+# Bump the image VERSION in the folder Makefile.
+bump_version() {
+  local current=$1
+  local bump=$2
+  local major_version minor_version
+
+  IFS=. read -r major_version minor_version <<< "$current"
+
+  if [ "$bump" = major ]; then
+    echo "$((major_version + 1)).0"
+  else
+    echo "${major_version}.$((minor_version + 1))"
+  fi
+}
+
+# Read the package version currently installed in the Dockerfile.
+current_package_version() {
+  awk -v package="$package" '
+    {
+      for (i = 1; i < NF; i++) {
+        if ($i == package && $(i + 1) ~ /^v?[0-9]/) {
+          print $(i + 1)
+          exit
+        }
+      }
+    }
+  ' "$dockerfile"
+}
+
+# Read the current image VERSION from the folder Makefile.
+current_image_version() {
+  awk -F':=' '$1 == "VERSION" { print $2; exit }' "$makefile"
+}
+
+# Replace the first matching package version in the Dockerfile.
+update_package_version() {
+  sed -i -E "0,/(${package}[[:space:]]+)v?[0-9][^[:space:]\\\\]*/s//\\1${version}/" "$dockerfile"
+}
+
+# Rewrite the folder Makefile with the next image VERSION.
+update_image_version() {
+  local next_version=$1
+
+  awk -v version="$next_version" '
+    BEGIN { updated = 0 }
+    /^VERSION:=/ {
+      print "VERSION:=" version
+      updated = 1
+      next
+    }
+    { print }
+    END { if (!updated) exit 1 }
+  ' "$makefile" > "$makefile.tmp"
+  mv "$makefile.tmp" "$makefile"
+}
+
+(
+  cd "$dir"
+
+  readonly old_package_version=$(current_package_version)
+  readonly old_image_version=$(current_image_version)
+
+  if [ -z "$old_package_version" ]; then
+    echo "could not find package '$package' in $dockerfile" >&2
+    exit 1
+  fi
+
+  if [ -z "$old_image_version" ]; then
+    echo "could not find VERSION in $makefile" >&2
+    exit 1
+  fi
+
+  readonly package_bump=$(
+    if [ "$(major "$old_package_version")" = "$(major "$version")" ]; then
+      echo minor
+    else
+      echo major
+    fi
+  )
+  readonly next_image_version=$(bump_version "$old_image_version" "$package_bump")
+
+  make name="$kind" new-feature
+  update_package_version
+  update_image_version "$next_image_version"
+  make msg="updated $package to $version" ready
+)

@@ -25,6 +25,7 @@ Top-level scripts:
 - `update-service`: run bulk actions over the `services` set only.
 - `update-bundler`: install a Bundler version and run follow-up make targets.
 - `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
+- `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
 - `update-go-dep`: update outdated Go dependencies using make targets.
 - `update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
 - `update-submodule`: update this repo as a submodule in a target repo.
@@ -43,6 +44,7 @@ Additional requirements by script:
 - `deps`: `go`
 - `lsp`: `ruby`, `bundler`
 - `update-go-dep`: `ruby`
+- `update-docker-dep`: `awk`, `sed`
 - `update-ci`: `curl`, `jq`, `sed`
 - `load`: `vegeta`, `ghz`
 
@@ -311,6 +313,32 @@ Behavior:
 - Otherwise:
   - reads modules from `make outdated-dep`
   - updates each with `make module=<module> update-dep`
+
+### `update-docker-dep`
+
+Update a package in `$HOME/code/docker/<kind>/Dockerfile`.
+
+Syntax:
+
+```bash
+update-docker-dep <kind> <package> <version>
+```
+
+Example:
+
+```bash
+update-docker-dep k8s doctl 1.155.0
+```
+
+Behavior:
+
+- Changes to `$HOME/code/docker`
+- `make name=<kind> new-feature`
+- Updates the first `<package> <version>` occurrence in `<kind>/Dockerfile`
+- Bumps `<kind>/Makefile` `VERSION`:
+  - major image version when the package major version changes
+  - minor image version otherwise
+- Finalizes with `make msg="updated <package> to <version>" ready`
 
 ### `update-service-dep`
 
