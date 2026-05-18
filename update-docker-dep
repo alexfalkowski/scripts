@@ -32,13 +32,28 @@ bump_version() {
   fi
 }
 
-# Read the package version currently installed in the Dockerfile.
-current_package_version() {
+# Find the matching tool path and version token in the Dockerfile.
+package_version_entry() {
   awk -v package="$package" '
+    function matches_package(path, parts, total, i) {
+      if (path == package) {
+        return 1
+      }
+
+      total = split(path, parts, "/")
+      for (i = 1; i <= total; i++) {
+        if (parts[i] == package && parts[i] !~ /^v[0-9]+$/) {
+          return 1
+        }
+      }
+
+      return 0
+    }
+
     {
-      for (i = 1; i < NF; i++) {
-        if ($i == package && $(i + 1) ~ /^v?[0-9]/) {
-          print $(i + 1)
+      for (i = 1; i <= NF - 2; i++) {
+        if (($i == "install-image-tool" || $i == "install-go-tool") && matches_package($(i + 1))) {
+          print $(i + 1) "\t" $(i + 2)
           exit
         }
       }
@@ -46,14 +61,115 @@ current_package_version() {
   ' "$dockerfile"
 }
 
+# Read the matching tool path from the Dockerfile.
+package_path() {
+  local entry=$(package_version_entry)
+  local tab=$'\t'
+
+  echo "${entry%%"$tab"*}"
+}
+
+# Read the matching tool version token from the Dockerfile.
+package_version_token() {
+  local entry=$(package_version_entry)
+  local tab=$'\t'
+
+  echo "${entry##*"$tab"}"
+}
+
+# Extract the variable name from a quoted shell variable reference.
+version_variable() {
+  local value=${1#\"}
+  value=${value%\"}
+
+  if [[ $value =~ ^\$[[:alpha:]_][[:alnum:]_]*$ ]]; then
+    echo "${value#\$}"
+  fi
+}
+
+# Read the value assigned to an ENV variable in the Dockerfile.
+env_version() {
+  local variable=$1
+
+  awk -v variable="$variable" '
+    $1 == "ENV" {
+      split($2, parts, "=")
+      if (parts[1] == variable) {
+        print parts[2]
+        exit
+      }
+      if ($2 == variable) {
+        print $3
+        exit
+      }
+    }
+  ' "$dockerfile"
+}
+
+# Read the package version currently installed in the Dockerfile.
+current_package_version() {
+  local token=$(package_version_token)
+  local variable=$(version_variable "$token")
+
+  if [ -n "$variable" ]; then
+    env_version "$variable"
+  else
+    echo "$token"
+  fi
+}
+
 # Read the current image VERSION from the folder Makefile.
 current_image_version() {
   awk -F':=' '$1 == "VERSION" { print $2; exit }' "$makefile"
 }
 
+# Escape a string for use in an extended regular expression.
+regex_escape() {
+  printf '%s\n' "$1" | sed -E 's/[][\/.^$*+?{}()|]/\\&/g'
+}
+
+# Replace an ENV variable assignment in the Dockerfile.
+update_env_version() {
+  local variable=$1
+
+  awk -v variable="$variable" -v version="$version" '
+    $1 == "ENV" && !updated {
+      split($2, parts, "=")
+      if (parts[1] == variable) {
+        print "ENV " variable "=" version
+        updated = 1
+        next
+      }
+      if ($2 == variable) {
+        print "ENV " variable " " version
+        updated = 1
+        next
+      }
+    }
+    { print }
+    END { if (!updated) exit 1 }
+  ' "$dockerfile" > "$dockerfile.tmp"
+  mv "$dockerfile.tmp" "$dockerfile"
+}
+
+# Replace a direct tool version token in the Dockerfile.
+update_tool_version() {
+  local path_pattern=$(regex_escape "$(package_path)")
+  local token_pattern=$(regex_escape "$(package_version_token)")
+
+  sed -i -E "0,/(${path_pattern}[[:space:]]+)${token_pattern}/s//\\1${version}/" "$dockerfile"
+}
+
 # Replace the first matching package version in the Dockerfile.
 update_package_version() {
-  sed -i -E "0,/(${package}[[:space:]]+)v?[0-9][^[:space:]\\\\]*/s//\\1${version}/" "$dockerfile"
+  local token=$(package_version_token)
+  local variable=$(version_variable "$token")
+
+  if [ -n "$variable" ]; then
+    update_env_version "$variable"
+  else
+    update_tool_version
+  fi
 }
 
 # Rewrite the folder Makefile with the next image VERSION.

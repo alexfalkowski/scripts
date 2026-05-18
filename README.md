@@ -335,6 +335,8 @@ Behavior:
 - Changes to `$HOME/code/docker`
 - `make name=<kind> new-feature`
 - Updates the first `<package> <version>` occurrence in `<kind>/Dockerfile`
+  where `<package>` can also be a slash-delimited segment of a tool path
+  and `<version>` can be an `ENV` variable reference
 - Bumps `<kind>/Makefile` `VERSION`:
   - major image version when the package major version changes
   - minor image version otherwise
