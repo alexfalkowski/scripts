@@ -13,42 +13,6 @@ new)
   done
   ;;
 
-latest)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && make latest)
-  done
-  ;;
-
-purge)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && make purge)
-  done
-  ;;
-
-dep)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && make dep)
-  done
-  ;;
-
-bundler)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && update-bundler "svc" "$2" "$3")
-  done
-  ;;
-
-submodule)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && update-submodule "$2" "$3")
-  done
-  ;;
-
-ci)
-  for dir in "${services[@]}"; do
-    (cd "$dir" && update-ci)
-  done
-  ;;
-
 done)
   for dir in "${services[@]}"; do
     (cd "$dir" && make done)
