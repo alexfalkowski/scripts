@@ -4,49 +4,33 @@
 set -eo pipefail
 
 source "$(dirname "$0")"/lib/dirs.sh
-readonly action=$1
-readonly directories=("${services[@]}" "${ruby[@]}")
+readonly dirs=$1
+readonly action=$2
+
+case $dirs in
+ruby)
+  readonly directories=("${ruby[@]}")
+  ;;
+
+services)
+  readonly directories=("${services[@]}")
+  ;;
+
+all)
+  readonly directories=("${services[@]}" "${ruby[@]}")
+  ;;
+esac
 
 case $action in
 new)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-ruby-dep "$2" "$3")
-  done
-  ;;
-
-latest)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && make latest)
-  done
-  ;;
-
-purge)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && make purge)
-  done
-  ;;
-
-dep)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && make dep)
+    (cd "$dir" && update-ruby-dep "$3" "$4")
   done
   ;;
 
 bundler)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-bundler "$2" "$3")
-  done
-  ;;
-
-submodule)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && update-submodule "$2" "$3")
-  done
-  ;;
-
-ci)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && update-ci)
+    (cd "$dir" && update-bundler "$3" "$4")
   done
   ;;
 

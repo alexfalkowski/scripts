@@ -9,19 +9,19 @@ readonly action=$2
 
 case $dirs in
 ruby)
-  directories=("${ruby[@]}")
+  readonly directories=("${ruby[@]}")
   ;;
 
 go)
-  directories=("${go[@]}")
+  readonly directories=("${go[@]}")
   ;;
 
 services)
-  directories=("${services[@]}")
+  readonly directories=("${services[@]}")
   ;;
 
 all)
-  directories=("${all[@]}")
+  readonly directories=("${all[@]}")
   ;;
 
 esac

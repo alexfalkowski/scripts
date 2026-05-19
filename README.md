@@ -130,8 +130,8 @@ This runs submodule updates in each configured repo and finalizes with `make don
 ### Upgrade Bundler in Ruby and service repos
 
 ```bash
-./update-ruby bundler 2.5.6 "upgrade bundler"
-./update-ruby done
+./update-ruby all bundler 2.5.6 "upgrade bundler"
+./update-ruby all done
 ```
 
 ### Upgrade Bundler in one target repo
@@ -217,7 +217,7 @@ Examples:
 
 ### `update-service`
 
-Same idea as `update`, but fixed to the `services` list.
+Run service-specific dependency actions across the `services` list.
 
 Syntax:
 
@@ -228,53 +228,44 @@ Syntax:
 Actions:
 
 - `new`: `update-service-dep <kind> <version> <desc>`
-- `latest`: `make latest`
-- `purge`: `make purge`
-- `dep`: `make dep`
 - `done`: `make done`
-- `ci`: `update-ci`
-- `submodule`: `update-submodule <kind> <desc>`
-- `bundler`: `update-bundler "svc" <version> <desc>`
 
 Examples:
 
 ```bash
 ./update-service new svc v2.3.4 "upgrade go-service"
-./update-service dep
-./update-service ci
+./update services dep
+./update services ci
 ```
-
-Important:
-
-- The `bundler` action currently passes `"svc"` as the Bundler version to `update-bundler`. That means it will try `gem install bundler -v svc` and is likely not what you want. Adjust the script before using this action.
 
 ### `update-ruby`
 
-Same idea as `update-service`, but fixed to the `services` and `ruby` lists.
+Run Ruby-specific dependency actions across the `services` and `ruby` lists.
 
 Syntax:
 
 ```bash
-./update-ruby <action> [args...]
+./update-ruby <dirs> <action> [args...]
 ```
+
+`<dirs>`:
+
+- `ruby`
+- `services`
+- `all` (services and Ruby repos)
 
 Actions:
 
 - `new`: `update-ruby-dep <kind> <desc>`
-- `latest`: `make latest`
-- `purge`: `make purge`
-- `dep`: `make dep`
 - `done`: `make done`
-- `ci`: `update-ci`
-- `submodule`: `update-submodule <kind> <desc>`
 - `bundler`: `update-bundler <version> <desc>`
 
 Examples:
 
 ```bash
-./update-ruby new test "update ruby dependencies"
-./update-ruby bundler 2.5.6 "upgrade bundler"
-./update-ruby done
+./update-ruby all new test "update ruby dependencies"
+./update-ruby services bundler 2.5.6 "upgrade bundler"
+./update-ruby all done
 ```
 
 ### `update-bundler`
