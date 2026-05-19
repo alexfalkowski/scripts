@@ -4,29 +4,16 @@
 set -eo pipefail
 
 source "$(dirname "$0")"/lib/dirs.sh
-readonly dirs=$1
-readonly action=$2
-
-case $dirs in
-ruby)
-  directories=("${ruby[@]}")
-  ;;
-
-go)
-  directories=("${go[@]}")
-  ;;
-
-services)
-  directories=("${services[@]}")
-  ;;
-
-all)
-  directories=("${all[@]}")
-  ;;
-
-esac
+readonly action=$1
+readonly directories=("${services[@]}" "${ruby[@]}")
 
 case $action in
+new)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && update-ruby-dep "$2" "$3")
+  done
+  ;;
+
 latest)
   for dir in "${directories[@]}"; do
     (cd "$dir" && make latest)
@@ -45,9 +32,15 @@ dep)
   done
   ;;
 
+bundler)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && update-bundler "$2" "$3")
+  done
+  ;;
+
 submodule)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-submodule "$3" "$4")
+    (cd "$dir" && update-submodule "$2" "$3")
   done
   ;;
 
@@ -57,16 +50,9 @@ ci)
   done
   ;;
 
-clean)
-  for dir in "${directories[@]}"; do
-    (cd "$dir" && clean)
-  done
-  ;;
-
 done)
   for dir in "${directories[@]}"; do
     (cd "$dir" && make done)
   done
   ;;
-
 esac
