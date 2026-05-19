@@ -23,10 +23,12 @@ Top-level scripts:
 - `lsp`: run Ruby LSP (runs `make dep` first).
 - `update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
 - `update-service`: run bulk actions over the `services` set only.
+- `update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
 - `update-bundler`: install a Bundler version and run follow-up make targets.
 - `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
 - `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
 - `update-go-dep`: update outdated Go dependencies using make targets.
+- `update-ruby-dep`: update Ruby dependencies using make targets.
 - `update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
 - `update-submodule`: update this repo as a submodule in a target repo.
 - `load`: run local HTTP/gRPC load tests for specific services.
@@ -50,7 +52,7 @@ Additional requirements by script:
 
 Notes:
 
-- Bulk scripts (`update`, `update-service`) call other scripts by command name (for example `update-ci`) after `cd` into target repos. Add this repo to `PATH` so those commands resolve correctly.
+- Bulk scripts (`update`, `update-service`, `update-ruby`) call other scripts by command name (for example `update-ci`) after `cd` into target repos. Add this repo to `PATH` so those commands resolve correctly.
 - Many scripts assume target repositories provide specific `make` targets (for example `dep`, `latest`, `ready`, `new-*`).
 
 ## Quick start
@@ -75,7 +77,7 @@ make scripts-lint
 
 ## Directory sets used by bulk scripts
 
-`update` and `update-service` read directories from [`lib/dirs.sh`](lib/dirs.sh).
+`update`, `update-service`, and `update-ruby` read directories from [`lib/dirs.sh`](lib/dirs.sh).
 
 Defined arrays:
 
@@ -125,6 +127,13 @@ Replace `v2.3.4` and description as needed.
 
 This runs submodule updates in each configured repo and finalizes with `make done`.
 
+### Upgrade Bundler in Ruby and service repos
+
+```bash
+./update-ruby bundler 2.5.6 "upgrade bundler"
+./update-ruby done
+```
+
 ### Upgrade Bundler in one target repo
 
 Run this from inside the target repo:
@@ -133,8 +142,6 @@ Run this from inside the target repo:
 update-bundler 2.5.6 "upgrade bundler"
 make done
 ```
-
-Prefer this direct flow over `./update-service bundler ...` until the `update-service` bundler argument ordering is fixed.
 
 ### Local load test cycle
 
@@ -197,7 +204,6 @@ Syntax:
 - `dep`: `make dep`
 - `done`: `make done`
 - `ci`: `update-ci`
-- `bundler`: `update-bundler <version> <desc>`
 - `submodule`: `update-submodule <kind> <desc>`
 
 Examples:
@@ -206,7 +212,6 @@ Examples:
 ./update go dep
 ./update all latest
 ./update services ci
-./update ruby bundler 2.5.6 "upgrade bundler"
 ./update all submodule svc "bump bin submodule"
 ```
 
@@ -242,6 +247,35 @@ Examples:
 Important:
 
 - The `bundler` action currently passes `"svc"` as the Bundler version to `update-bundler`. That means it will try `gem install bundler -v svc` and is likely not what you want. Adjust the script before using this action.
+
+### `update-ruby`
+
+Same idea as `update-service`, but fixed to the `services` and `ruby` lists.
+
+Syntax:
+
+```bash
+./update-ruby <action> [args...]
+```
+
+Actions:
+
+- `new`: `update-ruby-dep <kind> <desc>`
+- `latest`: `make latest`
+- `purge`: `make purge`
+- `dep`: `make dep`
+- `done`: `make done`
+- `ci`: `update-ci`
+- `submodule`: `update-submodule <kind> <desc>`
+- `bundler`: `update-bundler <version> <desc>`
+
+Examples:
+
+```bash
+./update-ruby new test "update ruby dependencies"
+./update-ruby bundler 2.5.6 "upgrade bundler"
+./update-ruby done
+```
 
 ### `update-bundler`
 
@@ -313,6 +347,31 @@ Behavior:
 - Otherwise:
   - reads modules from `make outdated-dep`
   - updates each with `make module=<module> update-dep`
+
+### `update-ruby-dep`
+
+Run inside a target repository.
+
+Syntax:
+
+```bash
+update-ruby-dep <kind> <desc>
+```
+
+Example:
+
+```bash
+update-ruby-dep test "update ruby dependencies"
+```
+
+Behavior:
+
+- Exits successfully when no `Gemfile` is found.
+- `make name=deps new-<kind>`
+- Runs follow-up make target:
+  - `make submodule go-dep ruby-update-all-dep` when `test/Gemfile` exists
+  - `make submodule go-dep update-all-dep` when root `Gemfile` exists
+- `make msg="updated ruby dependencies" desc="<desc>" ready`
 
 ### `update-docker-dep`
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+readonly kind=$1
+readonly desc=$2
+
+if [ -f test/Gemfile ]; then
+  make name=deps new-"${kind}"
+  make submodule ruby-update-all-dep
+  make msg="updated ruby dependencies" desc="${desc}" ready
+elif [ -f Gemfile ]; then
+  make name=deps new-"${kind}"
+  make submodule update-all-dep
+  make msg="updated ruby dependencies" desc="${desc}" ready
+fi
