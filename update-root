@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1091
+
+# Update alexfalkowski/root across the local docker image repository.
+
+set -eo pipefail
+
+source "$(dirname "$0")"/lib/version.sh
+
+readonly dir="$HOME/code/docker"
+readonly image="alexfalkowski/root"
+readonly version=$1
+
+if [ -z "$version" ]; then
+  echo "usage: update-root <version>" >&2
+  exit 1
+fi
+
+# Read the current root image version from a Dockerfile.
+current_root_version() {
+  local dockerfile=$1
+
+  awk -v image="$image" '
+    $1 == "FROM" {
+      split($2, parts, ":")
+      if (parts[1] == image) {
+        print parts[2]
+        exit
+      }
+    }
+  ' "$dockerfile"
+}
+
+# Replace root image versions in a Dockerfile.
+update_root_version() {
+  local dockerfile=$1
+
+  awk -v image="$image" -v version="$version" '
+    $1 == "FROM" {
+      split($2, parts, ":")
+      if (parts[1] == image) {
+        $2 = image ":" version
+        updated = 1
+      }
+    }
+    { print }
+    END { if (!updated) exit 1 }
+  ' "$dockerfile" > "$dockerfile.tmp"
+  mv "$dockerfile.tmp" "$dockerfile"
+}
+
+(
+  cd "$dir"
+
+  found=false
+
+  make name=deps new-feature
+
+  while IFS= read -r dockerfile; do
+    dockerfile=${dockerfile#./}
+    makefile="${dockerfile%/Dockerfile}/Makefile"
+    old_root_version=$(current_root_version "$dockerfile")
+
+    if [ -z "$old_root_version" ]; then
+      continue
+    fi
+
+    found=true
+    old_image_version=$(image_current_version "$makefile")
+
+    if [ -z "$old_image_version" ]; then
+      echo "could not find VERSION in $makefile" >&2
+      exit 1
+    fi
+
+    root_bump=$(version_bump "$old_root_version" "$version")
+    next_image_version=$(version_next "$old_image_version" "$root_bump")
+
+    update_root_version "$dockerfile"
+    image_update_version "$makefile" "$next_image_version"
+  done < <(find . -name Dockerfile -print | sort)
+
+  if [ "$found" = false ]; then
+    echo "could not find image '$image' in $dir" >&2
+    exit 1
+  fi
+
+  make msg="updated root to $version" ready
+)

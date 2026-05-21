@@ -27,6 +27,7 @@ Top-level scripts:
 - `update-bundler`: install a Bundler version and run follow-up make targets.
 - `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
 - `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
+- `update-root`: bump `alexfalkowski/root` in the local `alexfalkowski/docker` repo.
 - `update-go-dep`: update outdated Go dependencies using make targets.
 - `update-ruby-dep`: update Ruby dependencies using make targets.
 - `update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
@@ -47,6 +48,7 @@ Additional requirements by script:
 - `lsp`: `ruby`, `bundler`
 - `update-go-dep`: `ruby`
 - `update-docker-dep`: `awk`, `sed`
+- `update-root`: `awk`
 - `update-ci`: `curl`, `jq`, `sed`
 - `load`: `vegeta`, `ghz`
 
@@ -391,6 +393,34 @@ Behavior:
   - major image version when the package major version changes
   - minor image version otherwise
 - Finalizes with `make msg="updated <package> to <version>" ready`
+
+### `update-root`
+
+Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
+
+Syntax:
+
+```bash
+update-root <version>
+```
+
+Example:
+
+```bash
+update-root 3.9
+```
+
+Behavior:
+
+- Changes to `$HOME/code/docker`
+- Starts a dependency feature workflow with `make name=deps new-feature`
+- Finds Dockerfiles with a `FROM alexfalkowski/root:<old>` line
+- Updates matching `FROM alexfalkowski/root:<old>` lines to `FROM alexfalkowski/root:<version>`
+- Bumps the `VERSION` in the Makefile beside each matching Dockerfile
+- Uses a major image version bump when the root major version changes
+- Uses a minor image version bump otherwise
+- Exits with an error if no matching Dockerfiles are found
+- Finalizes once with `make msg="updated root to <version>" ready`
 
 ### `update-service-dep`
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2155
+# shellcheck disable=SC2155,SC1091
 
 set -eo pipefail
+
+source "$(dirname "$0")"/lib/version.sh
 
 readonly dir="$HOME/code/docker"
 readonly kind=$1
@@ -9,28 +11,6 @@ readonly package=$2
 readonly version=$3
 readonly dockerfile="$kind/Dockerfile"
 readonly makefile="$kind/Makefile"
-
-# Extract the major segment from a semantic-ish version.
-major() {
-  local value=${1#v}
-
-  echo "${value%%.*}"
-}
-
-# Bump the image VERSION in the folder Makefile.
-bump_version() {
-  local current=$1
-  local bump=$2
-  local major_version minor_version
-
-  IFS=. read -r major_version minor_version <<< "$current"
-
-  if [ "$bump" = major ]; then
-    echo "$((major_version + 1)).0"
-  else
-    echo "${major_version}.$((minor_version + 1))"
-  fi
-}
 
 # Find the matching tool path and version token in the Dockerfile.
 package_version_entry() {
@@ -118,16 +98,6 @@ current_package_version() {
   fi
 }
 
-# Read the current image VERSION from the folder Makefile.
-current_image_version() {
-  awk -F':=' '$1 == "VERSION" { print $2; exit }' "$makefile"
-}
-
-# Escape a string for use in an extended regular expression.
-regex_escape() {
-  printf '%s\n' "$1" | sed -E 's/[][\/.^$*+?{}()|]/\\&/g'
-}
-
 # Replace an ENV variable assignment in the Dockerfile.
 update_env_version() {
   local variable=$1
@@ -154,8 +124,8 @@ update_env_version() {
 
 # Replace a direct tool version token in the Dockerfile.
 update_tool_version() {
-  local path_pattern=$(regex_escape "$(package_path)")
-  local token_pattern=$(regex_escape "$(package_version_token)")
+  local path_pattern=$(version_regex_escape "$(package_path)")
+  local token_pattern=$(version_regex_escape "$(package_version_token)")
 
   sed -i -E "0,/(${path_pattern}[[:space:]]+)${token_pattern}/s//\\1${version}/" "$dockerfile"
 }
@@ -172,28 +142,11 @@ update_package_version() {
   fi
 }
 
-# Rewrite the folder Makefile with the next image VERSION.
-update_image_version() {
-  local next_version=$1
-
-  awk -v version="$next_version" '
-    BEGIN { updated = 0 }
-    /^VERSION:=/ {
-      print "VERSION:=" version
-      updated = 1
-      next
-    }
-    { print }
-    END { if (!updated) exit 1 }
-  ' "$makefile" > "$makefile.tmp"
-  mv "$makefile.tmp" "$makefile"
-}
-
 (
   cd "$dir"
 
   readonly old_package_version=$(current_package_version)
-  readonly old_image_version=$(current_image_version)
+  readonly old_image_version=$(image_current_version "$makefile")
 
   if [ -z "$old_package_version" ]; then
     echo "could not find package '$package' in $dockerfile" >&2
@@ -205,17 +158,11 @@ update_image_version() {
     exit 1
   fi
 
-  readonly package_bump=$(
-    if [ "$(major "$old_package_version")" = "$(major "$version")" ]; then
-      echo minor
-    else
-      echo major
-    fi
-  )
-  readonly next_image_version=$(bump_version "$old_image_version" "$package_bump")
+  readonly package_bump=$(version_bump "$old_package_version" "$version")
+  readonly next_image_version=$(version_next "$old_image_version" "$package_bump")
 
   make name="$kind" new-feature
   update_package_version
-  update_image_version "$next_image_version"
+  image_update_version "$makefile" "$next_image_version"
   make msg="updated $package to $version" ready
 )
