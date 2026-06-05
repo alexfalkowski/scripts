@@ -71,6 +71,8 @@ workflows:
           filters:
             branches:
               only: master
+      # CircleCI ignores filtered-out required jobs, so this waits for
+      # lint+version on master and lint+sync on non-master branches.
       - wait-all:
           requires:
             - lint

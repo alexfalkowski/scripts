@@ -1,28 +1,40 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086,SC2155
 
 set -eo pipefail
 
 # Find the newest published Docker Hub tag and drop the patch segment.
 latest_image() {
-	local tag=$(curl -sSL "https://hub.docker.com/v2/repositories/alexfalkowski/$1/tags/?page_size=1000" |
+	local image=$1
+	local tag
+
+	if ! tag=$(curl -fsSL "https://hub.docker.com/v2/repositories/alexfalkowski/$image/tags/?page_size=1000" |
 		jq '.results | .[] | .name' -r |
-		sed 's/latest//' |
+		sed '/^latest$/d' |
 		sort --version-sort |
 		tail -n 1 |
-		sed 's/\.[^.]*$//')
+		sed 's/\.[^.]*$//'); then
+		echo "could not resolve latest image for $image" >&2
+		return 1
+	fi
+
+	if [ -z "$tag" ]; then
+		echo "empty latest image tag for $image" >&2
+		return 1
+	fi
 
 	echo "$tag"
 }
 
 # Replace image tags in a CircleCI config with the latest published versions.
 update_config() {
-	readonly file="$1"
-	readonly go_latest=$(latest_image "go")
-	readonly release_latest=$(latest_image "release")
-	readonly ruby_latest=$(latest_image "ruby")
-	readonly k8s_latest=$(latest_image "k8s")
-	readonly docker_latest=$(latest_image "docker")
+	local file=$1
+	local go_latest release_latest ruby_latest k8s_latest docker_latest
+
+	go_latest=$(latest_image "go")
+	release_latest=$(latest_image "release")
+	ruby_latest=$(latest_image "ruby")
+	k8s_latest=$(latest_image "k8s")
+	docker_latest=$(latest_image "docker")
 
 	# Replace all instances.
 	sed -i \
@@ -31,7 +43,7 @@ update_config() {
 		-e "s/alexfalkowski\/ruby\:.*/alexfalkowski\/ruby\:${ruby_latest}/g" \
 		-e "s/alexfalkowski\/k8s\:.*/alexfalkowski\/k8s\:${k8s_latest}/g" \
 		-e "s/alexfalkowski\/docker\:.*/alexfalkowski\/docker\:${docker_latest}/g" \
-		$file
+		"$file"
 }
 
 make name=ci new-build

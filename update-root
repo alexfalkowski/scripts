@@ -53,8 +53,7 @@ update_root_version() {
   cd "$dir"
 
   found=false
-
-  make name=deps new-feature
+  updated=false
 
   while IFS= read -r dockerfile; do
     dockerfile=${dockerfile#./}
@@ -66,6 +65,11 @@ update_root_version() {
     fi
 
     found=true
+
+    if [ "$old_root_version" = "$version" ]; then
+      continue
+    fi
+
     old_image_version=$(image_current_version "$makefile")
 
     if [ -z "$old_image_version" ]; then
@@ -76,12 +80,22 @@ update_root_version() {
     root_bump=$(version_bump "$old_root_version" "$version")
     next_image_version=$(version_next "$old_image_version" "$root_bump")
 
+    if [ "$updated" = false ]; then
+      make name=deps new-feature
+    fi
+
     update_root_version "$dockerfile"
     image_update_version "$makefile" "$next_image_version"
+    updated=true
   done < <(find . -name Dockerfile -print | sort)
 
   if [ "$found" = false ]; then
     echo "could not find image '$image' in $dir" >&2
+    exit 1
+  fi
+
+  if [ "$updated" = false ]; then
+    echo "image '$image' is already at version $version in $dir" >&2
     exit 1
   fi
 
