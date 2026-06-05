@@ -5,10 +5,20 @@ set -eo pipefail
 
 source "$(dirname "$0")"/lib/version.sh
 
+usage() {
+  echo "usage: update-docker-dep <kind> <package> <version>" >&2
+  exit 1
+}
+
 readonly dir="$HOME/code/docker"
 readonly kind=$1
 readonly package=$2
 readonly version=$3
+
+if [ -z "$kind" ] || [ -z "$package" ] || [ -z "$version" ]; then
+  usage
+fi
+
 readonly dockerfile="$kind/Dockerfile"
 readonly makefile="$kind/Makefile"
 
@@ -62,8 +72,10 @@ version_variable() {
   local value=${1#\"}
   value=${value%\"}
 
-  if [[ $value =~ ^\$[[:alpha:]_][[:alnum:]_]*$ ]]; then
-    echo "${value#\$}"
+  if [[ $value =~ ^\$([[:alpha:]_][[:alnum:]_]*)$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  elif [[ $value =~ ^\$\{([[:alpha:]_][[:alnum:]_]*)\}$ ]]; then
+    echo "${BASH_REMATCH[1]}"
   fi
 }
 
@@ -73,14 +85,22 @@ env_version() {
 
   awk -v variable="$variable" '
     $1 == "ENV" {
-      split($2, parts, "=")
-      if (parts[1] == variable) {
-        print parts[2]
-        exit
-      }
       if ($2 == variable) {
         print $3
         exit
+      }
+      for (i = 2; i <= NF; i++) {
+        if (index($i, "=") == 0) {
+          continue
+        }
+        key = $i
+        value = $i
+        sub(/=.*/, "", key)
+        sub(/^[^=]*=/, "", value)
+        if (key == variable) {
+          print value
+          exit
+        }
       }
     }
   ' "$dockerfile"
@@ -104,16 +124,24 @@ update_env_version() {
 
   awk -v variable="$variable" -v version="$version" '
     $1 == "ENV" && !updated {
-      split($2, parts, "=")
-      if (parts[1] == variable) {
-        print "ENV " variable "=" version
+      if ($2 == variable) {
+        $3 = version
         updated = 1
+        print
         next
       }
-      if ($2 == variable) {
-        print "ENV " variable " " version
-        updated = 1
-        next
+      for (i = 2; i <= NF; i++) {
+        if (index($i, "=") == 0) {
+          continue
+        }
+        key = $i
+        sub(/=.*/, "", key)
+        if (key == variable) {
+          $i = variable "=" version
+          updated = 1
+          print
+          next
+        }
       }
     }
     { print }

@@ -1,16 +1,29 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'open3'
+
+def make_output(*args)
+  output, status = Open3.capture2('make', *args)
+  abort("make #{args.join(' ')} failed") unless status.success?
+
+  output.split("\n")
+end
+
+def make(*args)
+  return if system('make', *args)
+
+  abort("make #{args.join(' ')} failed")
+end
+
 if File.exist?('test/Gemfile')
-  deps = `make go-outdated-dep`.split("\n")
-  deps.each do |d|
-    m, = d.split
-    `make module=#{m} go-update-dep`
+  make_output('go-outdated-dep').each do |dep|
+    mod, = dep.split
+    make("module=#{mod}", 'go-update-dep')
   end
 else
-  deps = `make outdated-dep`.split("\n")
-  deps.each do |d|
-    m, = d.split
-    `make module=#{m} update-dep`
+  make_output('outdated-dep').each do |dep|
+    mod, = dep.split
+    make("module=#{mod}", 'update-dep')
   end
 end
