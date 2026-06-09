@@ -1,10 +1,13 @@
-# Scripts Toolbox
+# 🧰 Scripts Toolbox
 
-Utility scripts for running repeatable maintenance across multiple repositories (Ruby, Go, and services).
+Utility scripts for running repeatable maintenance across multiple repositories
+(Ruby, Go, Docker images, CircleCI projects, and services).
 
-Most scripts are wrappers around `make` targets in the target repository.
+> [!NOTE]
+> Most scripts are thin wrappers around `make` targets in the target repository.
+> They are intended for a local maintainer workflow, not as general-purpose CLIs.
 
-## Contents
+## 🗂️ Contents
 
 - [What this repo contains](#what-this-repo-contains)
 - [Prerequisites](#prerequisites)
@@ -15,26 +18,30 @@ Most scripts are wrappers around `make` targets in the target repository.
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
-## What this repo contains
+## 📦 What this repo contains
 
 Top-level scripts:
 
+- `clean`: remove dependency vendor directories and rerun `make dep`.
+- `create-ci`: create/configure a CircleCI project and trigger its first pipeline.
 - `deps`: install/update shared Go developer tools.
-- `lsp`: run Ruby LSP (runs `make dep` first).
+- `load`: run local HTTP/gRPC load tests for specific services.
+- `lsp`: run Ruby LSP after `make dep`.
+- `rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
+- `rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
 - `update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
-- `update-service`: run bulk actions over the `services` set only.
-- `update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
 - `update-bundler`: install a Bundler version and run follow-up make targets.
 - `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
 - `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
-- `update-root`: bump `alexfalkowski/root` in the local `alexfalkowski/docker` repo.
 - `update-go-dep`: update outdated Go dependencies using make targets.
+- `update-root`: bump `alexfalkowski/root` in the local `alexfalkowski/docker` repo.
+- `update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
 - `update-ruby-dep`: update Ruby dependencies using make targets.
+- `update-service`: run service-specific bulk actions over the `services` set only.
 - `update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
 - `update-submodule`: update this repo as a submodule in a target repo.
-- `load`: run local HTTP/gRPC load tests for specific services.
 
-## Prerequisites
+## ✅ Prerequisites
 
 Base requirements:
 
@@ -44,23 +51,29 @@ Base requirements:
 
 Additional requirements by script:
 
+- `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
-- `lsp`: `ruby`, `bundler`
-- `update-go-dep`: `ruby`
-- `update-docker-dep`: `awk`, `sed`
-- `update-root`: `awk`
-- `update-ci`: `curl`, `jq`, `sed`
 - `load`: `vegeta`, `ghz`
+- `lsp`: `ruby`, `bundler`
+- `rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
+- `rotate-oauth-ci`: `curl`, `jq`
+- `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
+- `update-docker-dep`: `awk`, `sed`
+- `update-go-dep`: `ruby`
+- `update-root`: `awk`, `find`
 
-Notes:
+> [!IMPORTANT]
+> Bulk scripts (`update`, `update-service`, `update-ruby`, and `rotate-ci`) call
+> other scripts by command name after changing directories or iterating configured
+> slugs. Add this repository to `PATH` so those commands resolve correctly.
 
-- Bulk scripts (`update`, `update-service`, `update-ruby`) call other scripts by command name (for example `update-ci`) after `cd` into target repos. Add this repo to `PATH` so those commands resolve correctly.
-- Many scripts assume target repositories provide specific `make` targets (for example `dep`, `latest`, `ready`, `new-*`).
+Many scripts assume target repositories provide specific `make` targets, such as
+`dep`, `latest`, `purge`, `ready`, `done`, or `new-*`.
 
-## Quick start
+## 🚀 Quick start
 
 1. Clone this repository.
-2. Install prerequisites.
+2. Install the prerequisites for the scripts you plan to run.
 3. Add this repository to `PATH`.
 
 Example (`zsh`/`bash`):
@@ -69,7 +82,11 @@ Example (`zsh`/`bash`):
 export PATH="/path/to/this/repo:$PATH"
 ```
 
-Run a basic check:
+> [!TIP]
+> From a shell already inside this repository, `export PATH="$(pwd):$PATH"` is
+> the shortest way to make the helper scripts available to bulk workflows.
+
+Run a basic script lint check:
 
 ```bash
 make scripts-lint
@@ -77,9 +94,10 @@ make scripts-lint
 
 `scripts-lint` requires `shellcheck`.
 
-## Directory sets used by bulk scripts
+## 🧭 Directory sets used by bulk scripts
 
-`update`, `update-service`, and `update-ruby` read directories from [`lib/dirs.sh`](lib/dirs.sh).
+`update`, `update-service`, and `update-ruby` read directories from
+[`lib/dirs.sh`](lib/dirs.sh).
 
 Defined arrays:
 
@@ -88,11 +106,16 @@ Defined arrays:
 - `services`
 - `all` (concatenation of the three above)
 
-Current defaults include paths under `$HOME/code/...`. Update them to match your machine.
+Current defaults are maintainer-local paths under `$HOME/code/...`.
 
-## Common workflows
+> [!IMPORTANT]
+> Treat `lib/dirs.sh` as the configured repository set for this checkout. Change
+> it only when intentionally changing which local repositories these bulk
+> scripts operate on.
 
-### Weekly dependency maintenance (all repos)
+## 🔁 Common workflows
+
+### 🗓️ Weekly dependency maintenance (all repos)
 
 ```bash
 ./deps
@@ -100,18 +123,36 @@ Current defaults include paths under `$HOME/code/...`. Update them to match your
 ./update all done
 ```
 
-Use this when you want a broad dependency refresh across your configured `ruby`, `go`, and `services` sets.
+Use this when you want a broad dependency refresh across your configured `ruby`,
+`go`, and `services` sets.
 
-### Refresh CircleCI images in service repos
+### 🧹 Reinstall dependencies in all configured repos
+
+```bash
+./update all clean
+./update all done
+```
+
+> [!CAUTION]
+> `clean` removes `test/vendor` and `vendor` in each target repository before it
+> reruns `make dep`.
+
+### 🏗️ Refresh CircleCI images in service repos
 
 ```bash
 ./update services ci
 ./update services done
 ```
 
-This updates `alexfalkowski/*` image tags in service repo CircleCI configs, then runs each repo's `make done`.
+This updates `alexfalkowski/*` image tags in service repo CircleCI configs, then
+runs each repo's `make done`.
 
-### Bump `go-service` dependency in all services
+> [!WARNING]
+> `update-ci` calls Docker Hub and edits the target repo's CircleCI config in
+> place. It uses GNU `sed -i` and `sort --version-sort`; macOS BSD tools may
+> need adaptation.
+
+### 🧩 Bump `go-service` dependency in all services
 
 ```bash
 ./update-service new svc v2.3.4 "upgrade go-service"
@@ -120,23 +161,24 @@ This updates `alexfalkowski/*` image tags in service repo CircleCI configs, then
 
 Replace `v2.3.4` and description as needed.
 
-### Bump `bin` submodule across all configured repos
+### 📌 Bump `bin` submodule across all configured repos
 
 ```bash
 ./update all submodule svc "bump bin submodule"
 ./update all done
 ```
 
-This runs submodule updates in each configured repo and finalizes with `make done`.
+This runs submodule updates in each configured repo and finalizes with
+`make done`.
 
-### Upgrade Bundler in Ruby and service repos
+### 💎 Upgrade Bundler in Ruby and service repos
 
 ```bash
 ./update-ruby all bundler 2.5.6 "upgrade bundler"
 ./update-ruby all done
 ```
 
-### Upgrade Bundler in one target repo
+### 💠 Upgrade Bundler in one target repo
 
 Run this from inside the target repo:
 
@@ -145,7 +187,36 @@ update-bundler 2.5.6 "upgrade bundler"
 make done
 ```
 
-### Local load test cycle
+### 🔐 Create a CircleCI project
+
+```bash
+create-ci my-repo-name
+```
+
+> [!WARNING]
+> `create-ci` makes live CircleCI API calls, creates a checkout key, writes a
+> `CODECOV_TOKEN` env var, and triggers a `master` pipeline.
+
+### 🔄 Rotate CircleCI GitHub OAuth triggers
+
+```bash
+DRY_RUN=1 rotate-ci
+rotate-ci
+```
+
+Use `DRY_RUN=1` first to print the DELETE/POST requests without changing
+CircleCI triggers.
+
+### 📈 Local load test cycle
+
+Start the services first:
+
+```bash
+~/code/standort/standort server -i file:config/standort.yml
+~/code/bezeichner/bezeichner server -i file:config/bezeichner.yml
+```
+
+Then run the load tests:
 
 ```bash
 ./load http standort
@@ -154,11 +225,43 @@ make done
 ./load grpc bezeichner
 ```
 
-Run once local services are up on the ports defined in [`load`](load).
+Run these only after local services are listening on the ports defined in
+[`load`](load).
 
-## Script reference
+## 📚 Script reference
 
-### `deps`
+### 🧹 `clean`
+
+Run inside a target repository:
+
+```bash
+clean
+```
+
+Behavior:
+
+- Removes `test/vendor` when it exists.
+- Removes `vendor` when it exists.
+- Runs `make dep`.
+
+### 🚀 `create-ci`
+
+Create and initialize a CircleCI project.
+
+Syntax:
+
+```bash
+create-ci <repo-name>
+```
+
+Behavior:
+
+- Creates `github/alexfalkowski/<repo-name>` in CircleCI.
+- Adds a user checkout key.
+- Adds `CODECOV_TOKEN` as a CircleCI environment variable.
+- Triggers a `master` pipeline.
+
+### 🛠️ `deps`
 
 Install pinned Go tools:
 
@@ -168,306 +271,7 @@ Install pinned Go tools:
 
 Current tool list is defined directly in [`deps`](deps).
 
-### `lsp`
-
-Run Ruby LSP in the current repository:
-
-```bash
-./lsp
-```
-
-Behavior:
-
-- Runs `make dep` first.
-- If `test/Gemfile` exists, runs `bundle exec ruby-lsp` inside `test/`.
-- Otherwise runs from repository root.
-
-### `update`
-
-Run an action across one directory set.
-
-Syntax:
-
-```bash
-./update <dirs> <action> [args...]
-```
-
-`<dirs>`:
-
-- `ruby`
-- `go`
-- `services`
-- `all`
-
-`<action>`:
-
-- `latest`: `make latest`
-- `purge`: `make purge`
-- `dep`: `make dep`
-- `done`: `make done`
-- `ci`: `update-ci`
-- `submodule`: `update-submodule <kind> <desc>`
-
-Examples:
-
-```bash
-./update go dep
-./update all latest
-./update services ci
-./update all submodule svc "bump bin submodule"
-```
-
-### `update-service`
-
-Run service-specific dependency actions across the `services` list.
-
-Syntax:
-
-```bash
-./update-service <action> [args...]
-```
-
-Actions:
-
-- `new`: `update-service-dep <kind> <version> <desc>`
-- `done`: `make done`
-
-Examples:
-
-```bash
-./update-service new svc v2.3.4 "upgrade go-service"
-./update services dep
-./update services ci
-```
-
-### `update-ruby`
-
-Run Ruby-specific dependency actions across the `services` and `ruby` lists.
-
-Syntax:
-
-```bash
-./update-ruby <dirs> <action> [args...]
-```
-
-`<dirs>`:
-
-- `ruby`
-- `services`
-- `all` (services and Ruby repos)
-
-Actions:
-
-- `new`: `update-ruby-dep <kind> <desc>`
-- `done`: `make done`
-- `bundler`: `update-bundler <version> <desc>`
-
-Examples:
-
-```bash
-./update-ruby all new test "update ruby dependencies"
-./update-ruby services bundler 2.5.6 "upgrade bundler"
-./update-ruby all done
-```
-
-### `update-bundler`
-
-Run inside a target repository.
-
-Syntax:
-
-```bash
-update-bundler <version> <desc>
-```
-
-Example:
-
-```bash
-update-bundler 2.5.6 "upgrade bundler"
-```
-
-Behavior:
-
-- `make name=deps new-test`
-- Installs Bundler version:
-  - in `test/` when `test/Gemfile` exists
-  - otherwise in repo root
-- Runs follow-up make target:
-  - `make submodule ruby-update-bundler` (test setup)
-  - or `make submodule update-bundler`
-- Finalizes with `make msg="upgraded bundler to <version>" desc="<desc>" ready`
-
-### `update-ci`
-
-Run inside a target repository with CircleCI config.
-
-```bash
-update-ci
-```
-
-Behavior:
-
-- `make name=ci new-build`
-- Reads latest tags for these Docker images from Docker Hub:
-  - `alexfalkowski/go`
-  - `alexfalkowski/release`
-  - `alexfalkowski/ruby`
-  - `alexfalkowski/k8s`
-  - `alexfalkowski/docker`
-- Updates either:
-  - `.circleci/continue_config.yml` (preferred when present), or
-  - `.circleci/config.yml`
-- Finalizes with `make msg="use latest published images" ready`
-
-Tag handling detail:
-
-- Tags are version-sorted and the highest tag is selected.
-- The last dot segment is stripped before writing (example: `1.2.3` becomes `1.2`).
-
-### `update-go-dep`
-
-Run inside a target repository.
-
-```bash
-update-go-dep
-```
-
-Behavior:
-
-- If `test/Gemfile` exists:
-  - reads modules from `make go-outdated-dep`
-  - updates each with `make module=<module> go-update-dep`
-- Otherwise:
-  - reads modules from `make outdated-dep`
-  - updates each with `make module=<module> update-dep`
-
-### `update-ruby-dep`
-
-Run inside a target repository.
-
-Syntax:
-
-```bash
-update-ruby-dep <kind> <desc>
-```
-
-Example:
-
-```bash
-update-ruby-dep test "update ruby dependencies"
-```
-
-Behavior:
-
-- Exits successfully when no `Gemfile` is found.
-- `make name=deps new-<kind>`
-- Runs follow-up make target:
-  - `make submodule go-dep ruby-update-all-dep` when `test/Gemfile` exists
-  - `make submodule go-dep update-all-dep` when root `Gemfile` exists
-- `make msg="updated ruby dependencies" desc="<desc>" ready`
-
-### `update-docker-dep`
-
-Update a package in `$HOME/code/docker/<kind>/Dockerfile`.
-
-Syntax:
-
-```bash
-update-docker-dep <kind> <package> <version>
-```
-
-Example:
-
-```bash
-update-docker-dep k8s doctl 1.155.0
-```
-
-Behavior:
-
-- Changes to `$HOME/code/docker`
-- `make name=<kind> new-feature`
-- Updates the first `<package> <version>` occurrence in `<kind>/Dockerfile`
-  where `<package>` can also be a slash-delimited segment of a tool path
-  and `<version>` can be an `ENV` variable reference
-- Bumps `<kind>/Makefile` `VERSION`:
-  - major image version when the package major version changes
-  - minor image version otherwise
-- Finalizes with `make msg="updated <package> to <version>" ready`
-
-### `update-root`
-
-Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
-
-Syntax:
-
-```bash
-update-root <version>
-```
-
-Example:
-
-```bash
-update-root 3.9
-```
-
-Behavior:
-
-- Changes to `$HOME/code/docker`
-- Starts a dependency feature workflow with `make name=deps new-feature`
-- Finds Dockerfiles with a `FROM alexfalkowski/root:<old>` line
-- Updates matching `FROM alexfalkowski/root:<old>` lines to `FROM alexfalkowski/root:<version>`
-- Bumps the `VERSION` in the Makefile beside each matching Dockerfile
-- Uses a major image version bump when the root major version changes
-- Uses a minor image version bump otherwise
-- Exits with an error if no matching Dockerfiles are found
-- Finalizes once with `make msg="updated root to <version>" ready`
-
-### `update-service-dep`
-
-Run inside a service repository.
-
-Syntax:
-
-```bash
-update-service-dep <kind> <version> <desc>
-```
-
-Example:
-
-```bash
-update-service-dep svc v2.3.4 "upgrade go-service"
-```
-
-Behavior:
-
-- `make name=deps new-<kind>`
-- `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`
-- `make submodule go-dep ruby-update-all-dep`
-- `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="<desc>" ready`
-
-### `update-submodule`
-
-Run inside a repository that includes `github.com/alexfalkowski/bin` as a submodule.
-
-Syntax:
-
-```bash
-update-submodule <kind> <desc>
-```
-
-Example:
-
-```bash
-update-submodule svc "bump bin submodule"
-```
-
-Behavior:
-
-- `make name=deps new-<kind>`
-- `make update-submodule`
-- `make msg="upgraded github.com/alexfalkowski/bin" desc="<desc>" ready`
-
-### `load`
+### 📈 `load`
 
 Run local HTTP or gRPC load tests for `standort` and `bezeichner`.
 
@@ -508,23 +312,391 @@ Current endpoints and payloads:
   - Call: `bezeichner.v1.Service/GenerateIdentifiers`
   - Payload: `{ "application": "ulid", "count": 10 }`
 
-## Troubleshooting
+### 💬 `lsp`
 
-`command not found` for helper scripts:
+Run Ruby LSP in the current repository:
+
+```bash
+./lsp
+```
+
+Behavior:
+
+- Runs `make dep` first.
+- If `test/Gemfile` exists, runs `bundle exec ruby-lsp` inside `test/`.
+- Otherwise runs from repository root.
+
+### 🔄 `rotate-ci`
+
+Rotate GitHub OAuth CircleCI triggers for every project slug in
+[`lib/slugs.sh`](lib/slugs.sh).
+
+```bash
+rotate-ci
+```
+
+Behavior:
+
+- Reads `CIRCLECI_API_TOKEN`.
+- Iterates the `slugs` array from `lib/slugs.sh`.
+- Calls `rotate-oauth-ci "$CIRCLECI_API_TOKEN" "$slug"` for each slug.
+
+> [!CAUTION]
+> Without `DRY_RUN=1`, each `rotate-oauth-ci` call deletes an existing trigger
+> before creating its replacement.
+
+### 🔁 `rotate-oauth-ci`
+
+Rotate one GitHub OAuth CircleCI trigger.
+
+Syntax:
+
+```bash
+rotate-oauth-ci <circleci-token> <project-slug>
+```
+
+Example:
+
+```bash
+DRY_RUN=1 rotate-oauth-ci "$CIRCLECI_API_TOKEN" gh/alexfalkowski/bin
+```
+
+Optional environment variables:
+
+- `CIRCLECI_API_ROOT`: override the CircleCI API root.
+- `PIPELINE_DEFINITION_ID`: choose a pipeline definition when auto-detection is
+  not enough.
+- `TRIGGER_ID`: choose a trigger when more than one GitHub OAuth trigger exists.
+- `DRY_RUN`: print the planned DELETE/POST requests without changing triggers.
+
+Behavior:
+
+- Finds the CircleCI project UUID from the human project slug.
+- Finds a `github_oauth` pipeline definition and trigger.
+- Recreates the trigger from its existing payload.
+- Prints the new trigger JSON and ID.
+
+### 📦 `update`
+
+Run an action across one directory set.
+
+Syntax:
+
+```bash
+./update <dirs> <action> [args...]
+```
+
+`<dirs>`:
+
+- `ruby`
+- `go`
+- `services`
+- `all`
+
+`<action>`:
+
+- `latest`: `make latest`
+- `purge`: `make purge`
+- `dep`: `make dep`
+- `clean`: `clean`
+- `done`: `make done`
+- `ci`: `update-ci`
+- `submodule`: `update-submodule <kind> <desc>`
+
+Examples:
+
+```bash
+./update go dep
+./update all latest
+./update all clean
+./update services ci
+./update all submodule svc "bump bin submodule"
+```
+
+### 🧩 `update-service`
+
+Run service-specific dependency actions across the `services` list.
+
+Syntax:
+
+```bash
+./update-service <action> [args...]
+```
+
+Actions:
+
+- `new`: `update-service-dep <kind> <version> <desc>`
+- `done`: `make done`
+
+Examples:
+
+```bash
+./update-service new svc v2.3.4 "upgrade go-service"
+./update-service done
+```
+
+### 💎 `update-ruby`
+
+Run Ruby-specific dependency actions across the `services` and `ruby` lists.
+
+Syntax:
+
+```bash
+./update-ruby <dirs> <action> [args...]
+```
+
+`<dirs>`:
+
+- `ruby`
+- `services`
+- `all` (services and Ruby repos)
+
+Actions:
+
+- `new`: `update-ruby-dep <kind> <desc>`
+- `done`: `make done`
+- `bundler`: `update-bundler <version> <desc>`
+
+Examples:
+
+```bash
+./update-ruby all new test "update ruby dependencies"
+./update-ruby services bundler 2.5.6 "upgrade bundler"
+./update-ruby all done
+```
+
+### 💠 `update-bundler`
+
+Run inside a target repository.
+
+Syntax:
+
+```bash
+update-bundler <version> <desc>
+```
+
+Example:
+
+```bash
+update-bundler 2.5.6 "upgrade bundler"
+```
+
+Behavior:
+
+- Runs `make name=deps new-test`.
+- Installs the requested Bundler version:
+  - in `test/` when `test/Gemfile` exists
+  - otherwise in repo root
+- Runs the follow-up make target:
+  - `make submodule ruby-update-bundler` when `test/Gemfile` exists
+  - `make submodule update-bundler` otherwise
+- Finalizes with `make msg="upgraded bundler to <version>" desc="<desc>" ready`.
+
+### 🏗️ `update-ci`
+
+Run inside a target repository with CircleCI config.
+
+```bash
+update-ci
+```
+
+Behavior:
+
+- Runs `make name=ci new-build`.
+- Reads latest tags for these Docker images from Docker Hub:
+  - `alexfalkowski/go`
+  - `alexfalkowski/release`
+  - `alexfalkowski/ruby`
+  - `alexfalkowski/k8s`
+  - `alexfalkowski/docker`
+- Updates either:
+  - `.circleci/continue_config.yml` when present
+  - `.circleci/config.yml` otherwise
+- Finalizes with `make msg="use latest published images" ready`.
+
+Tag handling detail:
+
+- Tags are version-sorted and the highest tag is selected.
+- The last dot segment is stripped before writing; for example, `1.2.3` becomes
+  `1.2`.
+
+### 🧬 `update-go-dep`
+
+Run inside a target repository.
+
+```bash
+update-go-dep
+```
+
+Behavior:
+
+- If `test/Gemfile` exists:
+  - reads modules from `make go-outdated-dep`
+  - updates each with `make module=<module> go-update-dep`
+- Otherwise:
+  - reads modules from `make outdated-dep`
+  - updates each with `make module=<module> update-dep`
+
+### 💍 `update-ruby-dep`
+
+Run inside a target repository.
+
+Syntax:
+
+```bash
+update-ruby-dep <kind> <desc>
+```
+
+Example:
+
+```bash
+update-ruby-dep test "update ruby dependencies"
+```
+
+Behavior:
+
+- Exits successfully when no `Gemfile` is found.
+- When `test/Gemfile` exists:
+  - runs `make name=deps new-<kind>`
+  - runs `make submodule ruby-update-all-dep`
+- When root `Gemfile` exists:
+  - runs `make name=deps new-<kind>`
+  - runs `make submodule update-all-dep`
+- Finalizes with `make msg="updated ruby dependencies" desc="<desc>" ready`.
+
+### 🧱 `update-docker-dep`
+
+Update a package in `$HOME/code/docker/<kind>/Dockerfile`.
+
+Syntax:
+
+```bash
+update-docker-dep <kind> <package> <version>
+```
+
+Example:
+
+```bash
+update-docker-dep k8s doctl 1.155.0
+```
+
+Behavior:
+
+- Changes to `$HOME/code/docker`.
+- Reads `<kind>/Dockerfile` and `<kind>/Makefile`.
+- Finds the first `install-image-tool` or `install-go-tool` entry matching
+  `<package>`.
+- Updates either:
+  - the direct version token after the matched tool path
+  - the referenced `ENV` value when the version token is a shell variable
+- Bumps `<kind>/Makefile` `VERSION`:
+  - major image version when the package major version changes
+  - minor image version otherwise
+- Finalizes with `make msg="updated <package> to <version>" ready`.
+
+### 🌱 `update-root`
+
+Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
+
+Syntax:
+
+```bash
+update-root <version>
+```
+
+Example:
+
+```bash
+update-root 3.9
+```
+
+Behavior:
+
+- Changes to `$HOME/code/docker`.
+- Starts a dependency feature workflow with `make name=deps new-feature`.
+- Finds Dockerfiles with a `FROM alexfalkowski/root:<old>` line.
+- Updates matching `FROM alexfalkowski/root:<old>` lines to
+  `FROM alexfalkowski/root:<version>`.
+- Bumps the `VERSION` in the Makefile beside each matching Dockerfile.
+- Uses a major image version bump when the root major version changes.
+- Uses a minor image version bump otherwise.
+- Exits with an error if no matching Dockerfiles are found.
+- Exits with an error if every matching Dockerfile is already on `<version>`.
+- Finalizes once with `make msg="updated root to <version>" ready`.
+
+### 🧩 `update-service-dep`
+
+Run inside a service repository.
+
+Syntax:
+
+```bash
+update-service-dep <kind> <version> <desc>
+```
+
+Example:
+
+```bash
+update-service-dep svc v2.3.4 "upgrade go-service"
+```
+
+Behavior:
+
+- Runs `make name=deps new-<kind>`.
+- Runs `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`.
+- Runs `make submodule go-dep ruby-update-all-dep`.
+- Finalizes with
+  `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="<desc>" ready`.
+
+### 📌 `update-submodule`
+
+Run inside a repository that includes `github.com/alexfalkowski/bin` as a
+submodule.
+
+Syntax:
+
+```bash
+update-submodule <kind> <desc>
+```
+
+Example:
+
+```bash
+update-submodule svc "bump bin submodule"
+```
+
+Behavior:
+
+- Runs `make name=deps new-<kind>`.
+- Runs `make update-submodule`.
+- Finalizes with
+  `make msg="upgraded github.com/alexfalkowski/bin" desc="<desc>" ready`.
+
+## 🧯 Troubleshooting
+
+### 🧰 `command not found` for helper scripts
 
 - Ensure this repository is on `PATH`.
-- Or call scripts with explicit path from this repo.
+- Or call scripts with an explicit path from this repo.
 
-Bulk scripts skip or fail in repos:
+### 🗃️ Bulk scripts skip or fail in repos
 
 - Verify paths in [`lib/dirs.sh`](lib/dirs.sh).
 - Verify required `make` targets exist in those repos.
 
-`update-ci` in-place edit problems on macOS:
+### 🏗️ `update-ci` GNU tool problems on macOS
 
 - BSD `sed -i` differs from GNU `sed -i`.
-- Run in Linux/WSL or adapt the script for macOS `sed` behavior.
+- BSD `sort` does not support `--version-sort`.
+- Run in Linux/WSL or adapt the script for macOS GNU coreutils.
 
-## License
+### 🔐 CircleCI API failures
+
+- Verify `CIRCLECI_API_TOKEN` is set and has access to the target projects.
+- For `create-ci`, verify `CODECOV_TOKEN` is set before creating the project.
+- For trigger rotation, run with `DRY_RUN=1` first to verify project slugs,
+  pipeline definition IDs, and trigger IDs.
+
+## 📄 License
 
 See [`LICENSE`](LICENSE).
