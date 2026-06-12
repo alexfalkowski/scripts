@@ -155,11 +155,11 @@ runs each repo's `make done`.
 ### 🧩 Bump `go-service` dependency in all services
 
 ```bash
-./update-service new svc v2.3.4 "upgrade go-service"
+./update-service new svc v2.3.4
 ./update-service done
 ```
 
-Replace `v2.3.4` and description as needed.
+Replace `v2.3.4` as needed.
 
 ### 📌 Bump `bin` submodule across all configured repos
 
@@ -425,13 +425,13 @@ Syntax:
 
 Actions:
 
-- `new`: `update-service-dep <kind> <version> <desc>`
+- `new`: `update-service-dep <kind> <version>`
 - `done`: `make done`
 
 Examples:
 
 ```bash
-./update-service new svc v2.3.4 "upgrade go-service"
+./update-service new svc v2.3.4
 ./update-service done
 ```
 
@@ -631,13 +631,13 @@ Run inside a service repository.
 Syntax:
 
 ```bash
-update-service-dep <kind> <version> <desc>
+update-service-dep <kind> <version>
 ```
 
 Example:
 
 ```bash
-update-service-dep svc v2.3.4 "upgrade go-service"
+update-service-dep svc v2.3.4
 ```
 
 Behavior:
@@ -646,7 +646,7 @@ Behavior:
 - Runs `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`.
 - Runs `make submodule go-dep ruby-update-all-dep`.
 - Finalizes with
-  `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="<desc>" ready`.
+  `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="https://github.com/alexfalkowski/go-service/releases/tag/<version>" ready`.
 
 ### 📌 `update-submodule`
 
