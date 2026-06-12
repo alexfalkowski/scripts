@@ -4,7 +4,7 @@ set -eo pipefail
 
 readonly kind=$1
 readonly version=$2
-readonly desc=$3
+readonly desc="https://github.com/alexfalkowski/go-service/releases/tag/${version}"
 
 make name=deps new-"${kind}"
 make module=github.com/alexfalkowski/go-service/v2@"$version" go-get
