@@ -566,30 +566,33 @@ Behavior:
 
 ### 🧱 `update-docker-dep`
 
-Update a package in `$HOME/code/docker/<kind>/Dockerfile`.
+Update a package in `$HOME/code/docker/<kind>/Dockerfile`, or in every matching
+Dockerfile.
 
 Syntax:
 
 ```bash
-update-docker-dep <kind> <package> <version>
+update-docker-dep <kind|all> <package> <version>
 ```
 
 Example:
 
 ```bash
 update-docker-dep k8s doctl 1.155.0
+update-docker-dep all trivy 0.72.0
 ```
 
 Behavior:
 
 - Changes to `$HOME/code/docker`.
-- Reads `<kind>/Dockerfile` and `<kind>/Makefile`.
+- Reads `<kind>/Dockerfile` and `<kind>/Makefile`, or every matching
+  `Dockerfile` and sibling `Makefile` when `<kind>` is `all`.
 - Finds the first `install-image-tool` or `install-go-tool` entry matching
-  `<package>`.
+  `<package>` in each Dockerfile.
 - Updates either:
   - the direct version token after the matched tool path
   - the referenced `ENV` value when the version token is a shell variable
-- Bumps `<kind>/Makefile` `VERSION`:
+- Bumps each updated image `Makefile` `VERSION`:
   - major image version when the package major version changes
   - minor image version otherwise
 - Finalizes with `make msg="updated <package> to <version>" ready`.
