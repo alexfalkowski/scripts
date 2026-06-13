@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155,SC1091
 
+# Update image tool dependencies in the local docker image repository.
+
 set -eo pipefail
 
 source "$(dirname "$0")"/lib/version.sh
 
 usage() {
-  echo "usage: update-docker-dep <kind> <package> <version>" >&2
+  echo "usage: update-docker-dep <kind|all> <package> <version>" >&2
   exit 1
 }
 
@@ -19,11 +21,10 @@ if [ -z "$kind" ] || [ -z "$package" ] || [ -z "$version" ]; then
   usage
 fi
 
-readonly dockerfile="$kind/Dockerfile"
-readonly makefile="$kind/Makefile"
-
 # Find the matching tool path and version token in the Dockerfile.
 package_version_entry() {
+  local dockerfile=$1
+
   awk -v package="$package" '
     function matches_package(path, parts, total, i) {
       if (path == package) {
@@ -53,7 +54,8 @@ package_version_entry() {
 
 # Read the matching tool path from the Dockerfile.
 package_path() {
-  local entry=$(package_version_entry)
+  local dockerfile=$1
+  local entry=$(package_version_entry "$dockerfile")
   local tab=$'\t'
 
   echo "${entry%%"$tab"*}"
@@ -61,7 +63,8 @@ package_path() {
 
 # Read the matching tool version token from the Dockerfile.
 package_version_token() {
-  local entry=$(package_version_entry)
+  local dockerfile=$1
+  local entry=$(package_version_entry "$dockerfile")
   local tab=$'\t'
 
   echo "${entry##*"$tab"}"
@@ -81,7 +84,8 @@ version_variable() {
 
 # Read the value assigned to an ENV variable in the Dockerfile.
 env_version() {
-  local variable=$1
+  local dockerfile=$1
+  local variable=$2
 
   awk -v variable="$variable" '
     $1 == "ENV" {
@@ -108,11 +112,12 @@ env_version() {
 
 # Read the package version currently installed in the Dockerfile.
 current_package_version() {
-  local token=$(package_version_token)
+  local dockerfile=$1
+  local token=$(package_version_token "$dockerfile")
   local variable=$(version_variable "$token")
 
   if [ -n "$variable" ]; then
-    env_version "$variable"
+    env_version "$dockerfile" "$variable"
   else
     echo "$token"
   fi
@@ -120,7 +125,8 @@ current_package_version() {
 
 # Replace an ENV variable assignment in the Dockerfile.
 update_env_version() {
-  local variable=$1
+  local dockerfile=$1
+  local variable=$2
 
   awk -v variable="$variable" -v version="$version" '
     $1 == "ENV" && !updated {
@@ -152,29 +158,33 @@ update_env_version() {
 
 # Replace a direct tool version token in the Dockerfile.
 update_tool_version() {
-  local path_pattern=$(version_regex_escape "$(package_path)")
-  local token_pattern=$(version_regex_escape "$(package_version_token)")
+  local dockerfile=$1
+  local path_pattern=$(version_regex_escape "$(package_path "$dockerfile")")
+  local token_pattern=$(version_regex_escape "$(package_version_token "$dockerfile")")
 
   sed -i -E "0,/(${path_pattern}[[:space:]]+)${token_pattern}/s//\\1${version}/" "$dockerfile"
 }
 
 # Replace the first matching package version in the Dockerfile.
 update_package_version() {
-  local token=$(package_version_token)
+  local dockerfile=$1
+  local token=$(package_version_token "$dockerfile")
   local variable=$(version_variable "$token")
 
   if [ -n "$variable" ]; then
-    update_env_version "$variable"
+    update_env_version "$dockerfile" "$variable"
   else
-    update_tool_version
+    update_tool_version "$dockerfile"
   fi
 }
 
-(
-  cd "$dir"
-
-  readonly old_package_version=$(current_package_version)
-  readonly old_image_version=$(image_current_version "$makefile")
+# Update one Docker image kind.
+update_kind() {
+  local image_kind=$1
+  local dockerfile="$image_kind/Dockerfile"
+  local makefile="$image_kind/Makefile"
+  local old_package_version=$(current_package_version "$dockerfile")
+  local old_image_version=$(image_current_version "$makefile")
 
   if [ -z "$old_package_version" ]; then
     echo "could not find package '$package' in $dockerfile" >&2
@@ -191,11 +201,76 @@ update_package_version() {
     exit 1
   fi
 
-  readonly package_bump=$(version_bump "$old_package_version" "$version")
-  readonly next_image_version=$(version_next "$old_image_version" "$package_bump")
+  local package_bump=$(version_bump "$old_package_version" "$version")
+  local next_image_version=$(version_next "$old_image_version" "$package_bump")
 
-  make name="$kind" new-feature
-  update_package_version
+  make name="$image_kind" new-feature
+  update_package_version "$dockerfile"
   image_update_version "$makefile" "$next_image_version"
+}
+
+# Update every Dockerfile containing the package.
+update_all() {
+  local found=false
+  local updated=false
+  local dockerfile makefile old_package_version old_image_version package_bump next_image_version
+
+  while IFS= read -r dockerfile; do
+    dockerfile=${dockerfile#./}
+    makefile="${dockerfile%/Dockerfile}/Makefile"
+    old_package_version=$(current_package_version "$dockerfile")
+
+    # This Dockerfile does not install the requested package.
+    if [ -z "$old_package_version" ]; then
+      continue
+    fi
+
+    found=true
+
+    # It matches the package, but there is nothing to change for this image.
+    if [ "$old_package_version" = "$version" ]; then
+      continue
+    fi
+
+    old_image_version=$(image_current_version "$makefile")
+
+    if [ -z "$old_image_version" ]; then
+      echo "could not find VERSION in $makefile" >&2
+      exit 1
+    fi
+
+    package_bump=$(version_bump "$old_package_version" "$version")
+    next_image_version=$(version_next "$old_image_version" "$package_bump")
+
+    # Start one dependency-update branch for the whole multi-image change.
+    if [ "$updated" = false ]; then
+      make name=deps new-feature
+    fi
+
+    update_package_version "$dockerfile"
+    image_update_version "$makefile" "$next_image_version"
+    updated=true
+  done < <(find . -name Dockerfile -print | sort)
+
+  if [ "$found" = false ]; then
+    echo "could not find package '$package' in $dir" >&2
+    exit 1
+  fi
+
+  if [ "$updated" = false ]; then
+    echo "package '$package' is already at version $version in $dir" >&2
+    exit 1
+  fi
+}
+
+(
+  cd "$dir"
+
+  if [ "$kind" = all ]; then
+    update_all
+  else
+    update_kind "$kind"
+  fi
+
   make msg="updated $package to $version" ready
 )
