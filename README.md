@@ -219,6 +219,10 @@ CircleCI triggers.
 
 ### 📈 Local load test cycle
 
+Run the load test cycle from this repository root. The service commands read
+the config files under [`config/`](config/) and `load` reads and writes the
+payload/report files under [`data/`](data/) relative to the current directory.
+
 Start the services first:
 
 ```bash
@@ -284,6 +288,10 @@ Current tool list is defined directly in [`deps`](deps).
 ### 📈 `load`
 
 Run local HTTP or gRPC load tests for `standort` and `bezeichner`.
+
+Run this command from the repository root. It reads request payloads from
+`data/*.json` and writes HTTP report binaries to `data/*.bin` relative to the
+current directory.
 
 Syntax:
 
