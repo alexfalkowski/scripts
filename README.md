@@ -58,7 +58,7 @@ Additional requirements by script:
 - `rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
 - `rotate-oauth-ci`: `curl`, `jq`
 - `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
-- `update-docker-dep`: `awk`, `sed`
+- `update-docker-dep`: `awk`, GNU `sed`
 - `update-go-dep`: `ruby`
 - `update-root`: `awk`, `find`
 
@@ -72,7 +72,14 @@ Many scripts assume target repositories provide specific `make` targets, such as
 
 ## 🚀 Quick start
 
-1. Clone this repository.
+1. Clone this repository with submodules, or initialize the submodule after
+   cloning:
+
+   ```bash
+   git submodule sync
+   git submodule update --init
+   ```
+
 2. Install the prerequisites for the scripts you plan to run.
 3. Add this repository to `PATH`.
 
@@ -85,6 +92,9 @@ export PATH="/path/to/this/repo:$PATH"
 > [!TIP]
 > From a shell already inside this repository, `export PATH="$(pwd):$PATH"` is
 > the shortest way to make the helper scripts available to bulk workflows.
+
+The root `Makefile` includes shared make fragments from the `bin` submodule, so
+initialize the submodule before running `make` targets in this repository.
 
 Run a basic script lint check:
 
@@ -595,6 +605,9 @@ Behavior:
 - Bumps each updated image `Makefile` `VERSION`:
   - major image version when the package major version changes
   - minor image version otherwise
+- Exits with an error if no matching package is found.
+- Exits with an error if a matching image `Makefile` has no `VERSION`.
+- Exits with an error if every matching package is already on `<version>`.
 - Finalizes with `make msg="updated <package> to <version>" ready`.
 
 ### 🌱 `update-root`
@@ -687,10 +700,11 @@ Behavior:
 - Verify paths in [`lib/dirs.sh`](lib/dirs.sh).
 - Verify required `make` targets exist in those repos.
 
-### 🏗️ `update-ci` GNU tool problems on macOS
+### 🏗️ GNU tool problems on macOS
 
-- BSD `sed -i` differs from GNU `sed -i`.
-- BSD `sort` does not support `--version-sort`.
+- `update-ci` uses GNU `sed -i` and `sort --version-sort`.
+- `update-docker-dep` uses GNU `sed -i -E` with a `0,/.../` address.
+- BSD `sed` and `sort` differ from those GNU behaviors.
 - Run in Linux/WSL or adapt the script for macOS GNU coreutils.
 
 ### 🔐 CircleCI API failures
