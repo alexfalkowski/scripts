@@ -30,8 +30,8 @@ the task is explicitly to bump or update that submodule to a new version.
 
 ## Known Gotchas
 
-- `update-service bundler` currently calls `update-bundler "svc" "$2" "$3"`,
-  so it passes `"svc"` where a Bundler version is expected.
+- Bundler upgrades are handled by `update-ruby <dirs> bundler <version> <desc>`;
+  `update-service` only handles service dependency bumps and `done`.
 - `update-ci` edits CircleCI config in the target repo in place.
 - `create-ci` makes live CircleCI API calls and triggers a pipeline.
 - `clean` removes `test/vendor` and `vendor` before rerunning `make dep`.
