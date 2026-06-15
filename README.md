@@ -12,7 +12,9 @@ Utility scripts for running repeatable maintenance across multiple repositories
 - [What this repo contains](#what-this-repo-contains)
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
+- [Make targets and validation](#make-targets-and-validation)
 - [Directory sets used by bulk scripts](#directory-sets-used-by-bulk-scripts)
+- [Workflow side effects](#workflow-side-effects)
 - [Common workflows](#common-workflows)
 - [Script reference](#script-reference)
 - [Troubleshooting](#troubleshooting)
@@ -57,6 +59,8 @@ Additional requirements by script:
 - `lsp`: `ruby`, `bundler`
 - `rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
 - `rotate-oauth-ci`: `curl`, `jq`
+- `update-bundler` and the `update-ruby ... bundler` action: `ruby`, RubyGems
+  (`gem`)
 - `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
 - `update-docker-dep`: `awk`, GNU `sed`
 - `update-go-dep`: `ruby`
@@ -80,6 +84,10 @@ Many scripts assume target repositories provide specific `make` targets, such as
    git submodule update --init
    ```
 
+   The nested `bin` submodule uses the SSH URL
+   `git@github.com:alexfalkowski/bin.git`, so this step requires GitHub SSH
+   access or a local Git URL override.
+
 2. Install the prerequisites for the scripts you plan to run.
 3. Add this repository to `PATH`.
 
@@ -96,13 +104,24 @@ export PATH="/path/to/this/repo:$PATH"
 The root `Makefile` includes shared make fragments from the `bin` submodule, so
 initialize the submodule before running `make` targets in this repository.
 
-Run a basic script lint check:
+## 🧪 Make targets and validation
+
+Run `make` or `make help` to print the authoritative target catalog. The root
+`Makefile` includes shared `help.mak`, `ruby.mak`, and `git.mak` fragments from
+the nested `bin` submodule.
+
+For local CI parity, run the same checks as the CircleCI lint job:
 
 ```bash
+make dep
+make clean-dep
 make scripts-lint
+make lint
+make sec
 ```
 
-`scripts-lint` requires `shellcheck`.
+`scripts-lint` requires `shellcheck`. `lint` runs RuboCop, and `sec` runs the
+repository Trivy scan through the shared `bin` submodule.
 
 ## 🧭 Directory sets used by bulk scripts
 
@@ -122,6 +141,23 @@ Current defaults are maintainer-local paths under `$HOME/code/...`.
 > Treat `lib/dirs.sh` as the configured repository set for this checkout. Change
 > it only when intentionally changing which local repositories these bulk
 > scripts operate on.
+
+## ⚠️ Workflow side effects
+
+Bulk scripts run their actions inside every configured target repository. When
+a script finalizes with `make ready`, the shared Git workflow commits all
+changes, force-pushes the current branch with a lease, opens a GitHub PR, and
+enables auto squash-merge. This applies directly or transitively to
+`update-ci`, `update-bundler`, `update-ruby-dep`, `update-service-dep`,
+`update-docker-dep`, `update-root`, and `update-submodule`.
+
+`done` actions run `make done` in each target repository. That shared workflow
+checks out `master`, pulls, updates submodules, then deletes the branch that was
+current before `done` started.
+
+CircleCI also has remote side effects after the lint job passes. Non-`master`
+branches run `make sync push`; `master` runs `version` and `package` with the
+`gh` context.
 
 ## 🔁 Common workflows
 
@@ -184,18 +220,22 @@ This runs submodule updates in each configured repo and finalizes with
 ### 💎 Upgrade Bundler in Ruby and service repos
 
 ```bash
-./update-ruby all bundler 2.5.6 "upgrade bundler"
+./update-ruby all bundler <version> "upgrade bundler"
 ./update-ruby all done
 ```
+
+Replace `<version>` with the Bundler version you intend to roll out.
 
 ### 💠 Upgrade Bundler in one target repo
 
 Run this from inside the target repo:
 
 ```bash
-update-bundler 2.5.6 "upgrade bundler"
+update-bundler <version> "upgrade bundler"
 make done
 ```
+
+Replace `<version>` with the Bundler version you intend to roll out.
 
 ### 🔐 Create a CircleCI project
 
@@ -329,6 +369,11 @@ Current endpoints and payloads:
   - Target: `localhost:12001`
   - Call: `bezeichner.v1.Service/GenerateIdentifiers`
   - Payload: `{ "application": "ulid", "count": 10 }`
+
+Load profile:
+
+- HTTP uses `vegeta attack -duration=30s`.
+- gRPC uses `ghz --insecure -n 2000 -c 20`.
 
 ### 💬 `lsp`
 
@@ -603,6 +648,9 @@ update-docker-dep all trivy 0.72.0
 Behavior:
 
 - Changes to `$HOME/code/docker`.
+- Starts `make name=<kind> new-feature` for a single image kind, or starts
+  `make name=deps new-feature` once before the first changed Dockerfile when
+  `<kind>` is `all`.
 - Reads `<kind>/Dockerfile` and `<kind>/Makefile`, or every matching
   `Dockerfile` and sibling `Makefile` when `<kind>` is `all`.
 - Finds the first `install-image-tool` or `install-go-tool` entry matching
