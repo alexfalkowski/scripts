@@ -1,14 +1,29 @@
 version: 2.1
 
-jobs:
-  lint:
-    docker:
-      - image: alexfalkowski/ruby:3.16
+commands:
+  sync-submodules:
+    steps:
+      - run: git submodule sync
+      - run: git submodule update --init
+  checkout-submodules:
     steps:
       - checkout:
           method: blobless
-      - run: git submodule sync
-      - run: git submodule update --init
+      - sync-submodules
+
+executors:
+  ruby:
+    docker:
+      - image: alexfalkowski/ruby:3.16
+  release:
+    docker:
+      - image: alexfalkowski/release:8.18
+
+jobs:
+  lint:
+    executor: ruby
+    steps:
+      - checkout-submodules
       - restore_cache:
           name: restore deps
           keys:
@@ -26,29 +41,20 @@ jobs:
       - run: make sec
     resource_class: arm.large
   sync:
-    docker:
-      - image: alexfalkowski/release:8.18
+    executor: release
     steps:
-      - checkout:
-          method: blobless
-      - run: git submodule sync
-      - run: git submodule update --init
+      - checkout-submodules
       - run: make sync push
     resource_class: arm.large
   version:
-    docker:
-      - image: alexfalkowski/release:8.18
+    executor: release
     steps:
-      - checkout:
-          method: blobless
-      - run: git submodule sync
-      - run: git submodule update --init
+      - checkout-submodules
       - run: version
       - run: package
     resource_class: arm.large
   wait-all:
-    docker:
-      - image: alexfalkowski/ruby:3.16
+    executor: ruby
     steps:
       - run: echo "all applicable jobs finished"
     resource_class: arm.large
