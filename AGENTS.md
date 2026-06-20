@@ -1,22 +1,24 @@
 # AGENTS.md
 
-## Shared skills
+## Shared guidance
 
-This repository uses the shared skills from `bin/skills/`. Read
-`bin/AGENTS.md` for the canonical shared skill list and use the smallest
-matching skill for the task.
+Use `bin/AGENTS.md` for shared skills and cross-repository defaults.
 
 ## Scope
 
 This guide applies to the repository root.
 
-Treat `bin/` as read-only in this repo. Do not edit files under `bin/` unless
-the task is explicitly to bump or update that submodule to a new version.
+Treat `bin/` as vendored shared tooling. Do not edit files under `bin/` unless
+the task is explicitly about shared `bin` tooling or bumping that submodule to a
+new version.
 
 ## Repo Rules
 
 - Prefer small, compatibility-preserving changes. Most top-level scripts are
   wrappers used across multiple repositories.
+- Use the root `Makefile` as the preferred command surface for repeatable
+  setup, validation, submodule, and Git workflow tasks. Run `make` or
+  `make help` to discover the available targets.
 - `update` and `update-service` use repository lists from `lib/dirs.sh`. Those
   paths are machine-specific; do not rewrite them unless the task is to change
   the configured repo sets.
@@ -40,9 +42,9 @@ the task is explicitly to bump or update that submodule to a new version.
 
 ## Verification
 
-Use the smallest relevant check set after changes:
+Use the smallest relevant repository-defined check after changes:
 
 - `make scripts-lint` for shell changes
 - `make lint` for Ruby changes
 - `make sec` when security-related targets or dependencies are touched
-- manual spot checks for script usage documented in `README.md`
+- README example spot checks when documentation changes command usage

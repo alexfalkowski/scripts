@@ -106,9 +106,10 @@ initialize the submodule before running `make` targets in this repository.
 
 ## 🧪 Make targets and validation
 
-Run `make` or `make help` to print the authoritative target catalog. The root
-`Makefile` includes shared `help.mak`, `ruby.mak`, and `git.mak` fragments from
-the nested `bin` submodule.
+Run `make` or `make help` to print the authoritative target catalog. Prefer
+these Make targets for repeatable setup, validation, submodule, and Git workflow
+tasks. The root `Makefile` includes shared `help.mak`, `ruby.mak`, and
+`git.mak` fragments from the nested `bin` submodule.
 
 For local CI parity, run the same checks as the CircleCI lint job:
 
