@@ -1,4 +1,12 @@
 .bundle/
-vendor
-*.bin
+.crush/
+.ruby-lsp/
+.source-key
 ISSUES.md
+TESTS.md
+DOCS.md
+FEATURES.md
+PROJECTS.md
+RELIABILITY.md
+vendor/
+*.bin
