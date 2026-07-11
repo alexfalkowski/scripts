@@ -1,0 +1,25 @@
+# Read by `ai`. Each kind configures the Codex and Claude model/reasoning
+# level to use, plus a prompt preamble.
+#
+# Use "-" as a kind's preamble when it should not invoke a provider skill.
+#
+# `default` configures any kind that has no entry of its own here but matches
+# a skill directory under bin/skills/<kind>, so new shared skills work with
+# `ai` without editing this file.
+kinds:
+  code:
+    codex:
+      model: gpt-5.6-luna
+      reasoning: xhigh
+    claude:
+      model: sonnet
+      effort: high
+    preamble: "-"
+  default:
+    codex:
+      model: gpt-5.6-sol
+      reasoning: max
+    claude:
+      model: opus
+      effort: xhigh
+    preamble: Inspect this repository with agents and a goal.

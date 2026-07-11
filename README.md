@@ -54,7 +54,8 @@ Base requirements:
 
 Additional requirements by script:
 
-- `ai`: Codex CLI (`codex`) and/or Claude Code (`claude`), depending on the selected provider
+- `ai`: `yq`, plus Codex CLI (`codex`) and/or Claude Code (`claude`), depending
+  on the selected provider
 - `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
 - `load`: `vegeta`, `ghz`
@@ -318,27 +319,32 @@ ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
 ```
 
-Kinds:
-
-- `code`
-- `test-gaps`
-- `reliability-gaps`
-- `project-gaps`
-- `feature-gaps`
-- `doc-gaps`
-
 The model, reasoning level, and prompt preamble are configured in
-[`config/ai.conf`](config/ai.conf). Each non-comment line uses this format:
+[`config/ai.yml`](config/ai.yml), read with `yq`. Each entry under `kinds`
+looks like this:
 
-```text
-kind|codex_model|codex_reasoning|claude_model|claude_effort|preamble
+```yaml
+kinds:
+  test-gaps:
+    codex:
+      model: gpt-5.6-sol
+      reasoning: max
+    claude:
+      model: opus
+      effort: xhigh
+    preamble: Inspect this repository with agents and a goal.
 ```
 
-`code` has no injected preamble. Each gap kind starts with `$<kind>` for Codex
-or `/<kind>` for Claude, followed by its configured preamble and then the
-optional prompt. Edit the final field to fine-tune each skill; use `-` when a
-kind should have no preamble. The selected skill must already be available in
-the repository where you run `ai`.
+`code` has no injected preamble (`preamble: "-"`) and is not a `bin` skill, so
+it always needs its own entry. Any other kind that has no entry of its own
+falls back to `kinds.default` as long as a matching `bin/skills/<kind>`
+directory exists, so new shared skills work with `ai` without editing this
+file. Add a kind-specific entry only to override the default model,
+reasoning, or preamble for that skill.
+
+Each configured kind starts with `$<kind>` for Codex or `/<kind>` for Claude,
+followed by its preamble and then the optional prompt. The selected skill must
+already be available in the repository where you run `ai`.
 
 ### 🚀 `create-ci`
 

@@ -5,8 +5,10 @@ set -eo pipefail
 # Starts an interactive Codex or Claude session using the selected kind's configuration.
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly script_dir
-config_file="$script_dir/config/ai.conf"
+config_file="$script_dir/config/ai.yml"
 readonly config_file
+skills_dir="$script_dir/bin/skills"
+readonly skills_dir
 
 usage() {
   echo "usage: ai <codex|claude> <kind> [prompt...]" >&2
@@ -35,43 +37,44 @@ if [ ! -r "$config_file" ]; then
   exit 1
 fi
 
-model=
-reasoning=
-preamble=
-skill_prefix=
+if ! command -v yq >/dev/null 2>&1; then
+  echo "yq is required to read $config_file" >&2
+  exit 1
+fi
 
-while IFS='|' read -r configured_kind codex_model codex_reasoning claude_model claude_effort configured_preamble; do
-  case $configured_kind in
-  '' | \#*)
-    continue
-    ;;
-  esac
+export KIND=$kind
 
-  if [ "$configured_kind" != "$kind" ]; then
-    continue
-  fi
+if [ "$(yq eval '.kinds | has(env(KIND))' "$config_file")" = true ]; then
+  base='.kinds[env(KIND)]'
+elif [ -d "$skills_dir/$kind" ]; then
+  base='.kinds.default'
+else
+  echo "unknown kind: $kind" >&2
+  exit 1
+fi
 
-  case $provider in
-  codex)
-    model=$codex_model
-    reasoning=$codex_reasoning
-    skill_prefix='$'
-    ;;
-  claude)
-    model=$claude_model
-    reasoning=$claude_effort
-    skill_prefix='/'
-    ;;
-  *)
-    usage
-    ;;
-  esac
+codex_model=$(yq eval "${base}.codex.model" "$config_file")
+codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
+claude_model=$(yq eval "${base}.claude.model" "$config_file")
+claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
+preamble=$(yq eval "${base}.preamble" "$config_file")
 
-  preamble=$configured_preamble
-  break
-done < "$config_file"
+unset KIND
 
-if [ -z "$model" ] || [ -z "$reasoning" ]; then
+case $provider in
+codex)
+  model=$codex_model
+  reasoning=$codex_reasoning
+  skill_prefix='$'
+  ;;
+claude)
+  model=$claude_model
+  reasoning=$claude_effort
+  skill_prefix='/'
+  ;;
+esac
+
+if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasoning" = null ]; then
   echo "unknown kind: $kind" >&2
   exit 1
 fi
