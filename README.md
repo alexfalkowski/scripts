@@ -24,6 +24,7 @@ Utility scripts for running repeatable maintenance across multiple repositories
 
 Top-level scripts:
 
+- `ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
 - `clean`: remove dependency vendor directories and rerun `make dep`.
 - `create-ci`: create/configure a CircleCI project and trigger its first pipeline.
 - `deps`: install/update shared Go developer tools.
@@ -53,6 +54,7 @@ Base requirements:
 
 Additional requirements by script:
 
+- `ai`: Codex CLI (`codex`) and/or Claude Code (`claude`), depending on the selected provider
 - `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
 - `load`: `vegeta`, `ghz`
@@ -298,6 +300,45 @@ Behavior:
 - Removes `test/vendor` when it exists.
 - Removes `vendor` when it exists.
 - Runs `make dep`.
+
+### 🤖 `ai`
+
+Start an interactive Codex or Claude session for a configured kind.
+
+Syntax:
+
+```bash
+ai <codex|claude> <kind> [prompt...]
+```
+
+Examples:
+
+```bash
+ai codex code "add a cache for this request"
+ai claude test-gaps "focus on the command-line interface"
+```
+
+Kinds:
+
+- `code`
+- `test-gaps`
+- `reliability-gaps`
+- `project-gaps`
+- `feature-gaps`
+- `doc-gaps`
+
+The model, reasoning level, and prompt preamble are configured in
+[`config/ai.conf`](config/ai.conf). Each non-comment line uses this format:
+
+```text
+kind|codex_model|codex_reasoning|claude_model|claude_effort|preamble
+```
+
+`code` has no injected preamble. Each gap kind starts with `$<kind>` for Codex
+or `/<kind>` for Claude, followed by its configured preamble and then the
+optional prompt. Edit the final field to fine-tune each skill; use `-` when a
+kind should have no preamble. The selected skill must already be available in
+the repository where you run `ai`.
 
 ### 🚀 `create-ci`
 

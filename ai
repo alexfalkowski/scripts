@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Starts an interactive Codex or Claude session using the selected kind's configuration.
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly script_dir
+config_file="$script_dir/config/ai.conf"
+readonly config_file
+
+usage() {
+  echo "usage: ai <codex|claude> <kind> [prompt...]" >&2
+  exit 1
+}
+
+if [ $# -lt 2 ]; then
+  usage
+fi
+
+readonly provider=$1
+readonly kind=$2
+shift 2
+
+case $provider in
+codex | claude)
+  ;;
+*)
+  echo "unknown provider: $provider" >&2
+  exit 1
+  ;;
+esac
+
+if [ ! -r "$config_file" ]; then
+  echo "unable to read configuration: $config_file" >&2
+  exit 1
+fi
+
+model=
+reasoning=
+preamble=
+skill_prefix=
+
+while IFS='|' read -r configured_kind codex_model codex_reasoning claude_model claude_effort configured_preamble; do
+  case $configured_kind in
+  '' | \#*)
+    continue
+    ;;
+  esac
+
+  if [ "$configured_kind" != "$kind" ]; then
+    continue
+  fi
+
+  case $provider in
+  codex)
+    model=$codex_model
+    reasoning=$codex_reasoning
+    skill_prefix='$'
+    ;;
+  claude)
+    model=$claude_model
+    reasoning=$claude_effort
+    skill_prefix='/'
+    ;;
+  *)
+    usage
+    ;;
+  esac
+
+  preamble=$configured_preamble
+  break
+done < "$config_file"
+
+if [ -z "$model" ] || [ -z "$reasoning" ]; then
+  echo "unknown kind: $kind" >&2
+  exit 1
+fi
+
+if [ "$preamble" = '-' ]; then
+  preamble=
+fi
+
+prompt=$*
+if [ -n "$preamble" ]; then
+  prompt="${skill_prefix}${kind} ${preamble}"
+  if [ $# -gt 0 ]; then
+    prompt="$prompt"$'\n\n'"$*"
+  fi
+fi
+
+case $provider in
+codex)
+  command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
+  ;;
+claude)
+  command=(claude --model "$model" --effort "$reasoning")
+  ;;
+esac
+
+if [ -n "$prompt" ]; then
+  command+=("$prompt")
+fi
+
+exec "${command[@]}"
