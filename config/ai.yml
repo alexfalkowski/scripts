@@ -38,4 +38,4 @@ kinds:
     claude:
       model: opus
       effort: xhigh
-    preamble: Inspect this repository with agents and a goal.
+    preamble: with agents and a goal

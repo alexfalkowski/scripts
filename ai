@@ -11,7 +11,7 @@ skills_dir="$script_dir/bin/skills"
 readonly skills_dir
 
 usage() {
-  echo "usage: ai <codex|claude> <kind> [prompt...]" >&2
+  echo "usage: ai <codex|claude> <kind> [-s <scope>] [prompt...]" >&2
   exit 1
 }
 
@@ -22,6 +22,29 @@ fi
 readonly provider=$1
 readonly kind=$2
 shift 2
+
+scope=.
+scope_provided=false
+while [ $# -gt 0 ]; do
+  case $1 in
+  -s | --scope)
+    if [ $# -lt 2 ] || [ -z "$2" ]; then
+      usage
+    fi
+    scope=$2
+    scope_provided=true
+    shift 2
+    ;;
+  --)
+    shift
+    break
+    ;;
+  *)
+    break
+    ;;
+  esac
+done
+readonly scope scope_provided
 
 case $provider in
 codex | claude)
@@ -80,7 +103,13 @@ if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasonin
 fi
 
 if [ "$preamble" = '-' ]; then
+  if [ "$scope_provided" = true ]; then
+    echo "scope is not supported for kind: $kind" >&2
+    exit 1
+  fi
   preamble=
+else
+  preamble="in $scope $preamble"
 fi
 
 prompt=$*
