@@ -18,7 +18,7 @@ kinds:
   research:
     codex:
       model: gpt-5.6-sol
-      reasoning: max
+      reasoning: xhigh
     claude:
       model: opus
       effort: xhigh
@@ -34,7 +34,7 @@ kinds:
   default:
     codex:
       model: gpt-5.6-sol
-      reasoning: max
+      reasoning: xhigh
     claude:
       model: opus
       effort: xhigh
