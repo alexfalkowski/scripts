@@ -309,7 +309,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [prompt...]
+ai <codex|claude> <kind> [-s <scope>] [--] [prompt...]
 ```
 
 Examples:
@@ -317,6 +317,8 @@ Examples:
 ```bash
 ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
+ai codex test-gaps -s lib "focus on the command-line interface"
+ai codex code -- "-s this is a literal prompt"
 ```
 
 The model, reasoning level, and prompt preamble are configured in
@@ -332,7 +334,7 @@ kinds:
     claude:
       model: opus
       effort: xhigh
-    preamble: Inspect this repository with agents and a goal.
+    preamble: with agents and a goal
 ```
 
 `code` has no injected preamble (`preamble: "-"`) and is not a `bin` skill, so
@@ -342,9 +344,12 @@ directory exists, so new shared skills work with `ai` without editing this
 file. Add a kind-specific entry only to override the default model,
 reasoning, or preamble for that skill.
 
-Each configured kind starts with `$<kind>` for Codex or `/<kind>` for Claude,
-followed by its preamble and then the optional prompt. The selected skill must
-already be available in the repository where you run `ai`.
+Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
+Claude, followed by `in <scope>` and its preamble. The scope defaults to `.`
+and can be overridden with `-s <scope>` (or the long-form alias `--scope
+<scope>`). Use `--` before the prompt when it begins with `-s` or `--scope`.
+A `preamble: "-"` entry remains unscoped and rejects scope options. The
+selected skill must already be available in the repository where you run `ai`.
 
 ### 🚀 `create-ci`
 
