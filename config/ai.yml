@@ -15,6 +15,22 @@ kinds:
       model: sonnet
       effort: high
     preamble: "-"
+  research:
+    codex:
+      model: gpt-5.6-sol
+      reasoning: max
+    claude:
+      model: opus
+      effort: xhigh
+    preamble: "-"
+  question:
+    codex:
+      model: gpt-5.6-luna
+      reasoning: medium
+    claude:
+      model: sonnet
+      effort: medium
+    preamble: "-"
   default:
     codex:
       model: gpt-5.6-sol
