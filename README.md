@@ -309,7 +309,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [--] [prompt...]
+ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-f <file>] [--] [prompt...]
 ```
 
 Examples:
@@ -319,6 +319,7 @@ ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
 ai codex test-gaps -s lib "focus on the command-line interface"
 ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
+ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
 ```
 
@@ -351,8 +352,11 @@ and its preamble. The scope defaults to `.` and can be overridden with `-s
 <scope>` (or the long-form alias `--scope <scope>`). Confidence is omitted by
 default, preserving the shared `>= 90%` minimum, and can be overridden with
 `-c <confidence>` (or `--confidence <confidence>`), such as `95%`. Use `--`
-before the prompt when it begins with `-s`, `--scope`, `-c`, or `--confidence`.
-A `preamble: "-"` entry remains unscoped and rejects scope and confidence
+before the prompt when it begins with `-s`, `--scope`, `-c`, `--confidence`,
+`-f`, or `--file`. Use `-f <file>` (or `--file <file>`) to read a multiline
+prompt from a readable regular file. The file path is relative to the current
+directory, and a file prompt cannot be combined with inline prompt words. A
+`preamble: "-"` entry remains unscoped and rejects scope and confidence
 options. The selected skill must already be available in the repository where
 you run `ai`.
 

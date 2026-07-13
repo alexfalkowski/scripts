@@ -9,15 +9,16 @@ readonly config_file="$script_dir/config/ai.yml"
 readonly skills_dir="$script_dir/bin/skills"
 
 usage() {
-  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [--] [prompt...]" >&2
+  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-f <file>] [--] [prompt...]" >&2
   exit 1
 }
 
-# Parses -s/--scope and -c/--confidence out of "$@", leaving the remaining
-# prompt words in the "prompt_args" array.
+# Parses supported flags out of "$@", leaving the remaining prompt words in
+# the "prompt_args" array.
 parse_flags() {
   scope=
   confidence=
+  prompt_file=
   while [ $# -gt 0 ]; do
     case $1 in
     -s | --scope)
@@ -32,6 +33,13 @@ parse_flags() {
         usage
       fi
       confidence=$2
+      shift 2
+      ;;
+    -f | --file)
+      if [ $# -lt 2 ] || [ -z "$2" ]; then
+        usage
+      fi
+      prompt_file=$2
       shift 2
       ;;
     --)
@@ -68,8 +76,8 @@ load_kind_config() {
 }
 
 # Builds the final "prompt" from the kind's preamble plus scope, confidence,
-# and any trailing prompt words. A preamble of "-" means the kind takes no
-# scope/confidence and no skill invocation is prepended.
+# and either a prompt file or trailing prompt words. A preamble of "-" means
+# the kind takes no scope/confidence and no skill invocation is prepended.
 build_prompt() {
   if [ "$preamble" = '-' ]; then
     if [ -n "$scope" ]; then
@@ -91,11 +99,24 @@ build_prompt() {
   fi
   readonly scope
 
-  prompt=$*
+  prompt_input=$*
+  if [ -n "$prompt_file" ]; then
+    if [ $# -gt 0 ]; then
+      echo "prompt file cannot be combined with inline prompt" >&2
+      exit 1
+    fi
+    if [ ! -f "$prompt_file" ] || [ ! -r "$prompt_file" ]; then
+      echo "unable to read prompt file: $prompt_file" >&2
+      exit 1
+    fi
+    prompt_input=$(<"$prompt_file")
+  fi
+  prompt=$prompt_input
+
   if [ -n "$preamble" ]; then
     prompt="${skill_prefix}${kind} ${preamble}"
-    if [ $# -gt 0 ]; then
-      prompt="$prompt"$'\n\n'"$*"
+    if [ $# -gt 0 ] || [ -n "$prompt_file" ]; then
+      prompt="$prompt"$'\n\n'"$prompt_input"
     fi
   fi
 }
