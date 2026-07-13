@@ -309,7 +309,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [-s <scope>] [--] [prompt...]
+ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [--] [prompt...]
 ```
 
 Examples:
@@ -318,6 +318,7 @@ Examples:
 ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
 ai codex test-gaps -s lib "focus on the command-line interface"
+ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
 ai codex code -- "-s this is a literal prompt"
 ```
 
@@ -345,11 +346,15 @@ file. Add a kind-specific entry only to override the default model,
 reasoning, or preamble for that skill.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
-Claude, followed by `in <scope>` and its preamble. The scope defaults to `.`
-and can be overridden with `-s <scope>` (or the long-form alias `--scope
-<scope>`). Use `--` before the prompt when it begins with `-s` or `--scope`.
-A `preamble: "-"` entry remains unscoped and rejects scope options. The
-selected skill must already be available in the repository where you run `ai`.
+Claude, followed by `in <scope>`, an optional `with >= <confidence> confidence`,
+and its preamble. The scope defaults to `.` and can be overridden with `-s
+<scope>` (or the long-form alias `--scope <scope>`). Confidence is omitted by
+default, preserving the shared `>= 90%` minimum, and can be overridden with
+`-c <confidence>` (or `--confidence <confidence>`), such as `95%`. Use `--`
+before the prompt when it begins with `-s`, `--scope`, `-c`, or `--confidence`.
+A `preamble: "-"` entry remains unscoped and rejects scope and confidence
+options. The selected skill must already be available in the repository where
+you run `ai`.
 
 ### 🚀 `create-ci`
 
