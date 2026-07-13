@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 
 set -eo pipefail
 
 # Starts an interactive Codex or Claude session using the selected kind's configuration.
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-readonly script_dir
-config_file="$script_dir/config/ai.yml"
-readonly config_file
-skills_dir="$script_dir/bin/skills"
-readonly skills_dir
+readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly config_file="$script_dir/config/ai.yml"
+readonly skills_dir="$script_dir/bin/skills"
 
 usage() {
-  echo "usage: ai <codex|claude> <kind> [-s <scope>] [prompt...]" >&2
+  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [--] [prompt...]" >&2
   exit 1
 }
 
@@ -23,8 +21,8 @@ readonly provider=$1
 readonly kind=$2
 shift 2
 
-scope=.
-scope_provided=false
+scope=
+confidence=
 while [ $# -gt 0 ]; do
   case $1 in
   -s | --scope)
@@ -32,7 +30,13 @@ while [ $# -gt 0 ]; do
       usage
     fi
     scope=$2
-    scope_provided=true
+    shift 2
+    ;;
+  -c | --confidence)
+    if [ $# -lt 2 ] || [ -z "$2" ]; then
+      usage
+    fi
+    confidence=$2
     shift 2
     ;;
   --)
@@ -44,8 +48,6 @@ while [ $# -gt 0 ]; do
     ;;
   esac
 done
-readonly scope scope_provided
-
 case $provider in
 codex | claude)
   ;;
@@ -103,14 +105,24 @@ if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasonin
 fi
 
 if [ "$preamble" = '-' ]; then
-  if [ "$scope_provided" = true ]; then
+  if [ -n "$scope" ]; then
     echo "scope is not supported for kind: $kind" >&2
+    exit 1
+  fi
+  if [ -n "$confidence" ]; then
+    echo "confidence is not supported for kind: $kind" >&2
     exit 1
   fi
   preamble=
 else
-  preamble="in $scope $preamble"
+  scope=${scope:-.}
+  if [ -n "$confidence" ]; then
+    preamble="in $scope with >= $confidence confidence $preamble"
+  else
+    preamble="in $scope $preamble"
+  fi
 fi
+readonly scope
 
 prompt=$*
 if [ -n "$preamble" ]; then
