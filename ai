@@ -13,6 +13,109 @@ usage() {
   exit 1
 }
 
+# Parses -s/--scope and -c/--confidence out of "$@", leaving the remaining
+# prompt words in the "prompt_args" array.
+parse_flags() {
+  scope=
+  confidence=
+  while [ $# -gt 0 ]; do
+    case $1 in
+    -s | --scope)
+      if [ $# -lt 2 ] || [ -z "$2" ]; then
+        usage
+      fi
+      scope=$2
+      shift 2
+      ;;
+    -c | --confidence)
+      if [ $# -lt 2 ] || [ -z "$2" ]; then
+        usage
+      fi
+      confidence=$2
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      break
+      ;;
+    esac
+  done
+  prompt_args=("$@")
+}
+
+# Resolves the kind's yq base path, falling back to .kinds.default for any
+# kind with a skills directory, then reads its model/reasoning/preamble.
+load_kind_config() {
+  export KIND=$kind
+  if [ "$(yq eval '.kinds | has(env(KIND))' "$config_file")" = true ]; then
+    base='.kinds[env(KIND)]'
+  elif [ -d "$skills_dir/$kind" ]; then
+    base='.kinds.default'
+  else
+    echo "unknown kind: $kind" >&2
+    exit 1
+  fi
+
+  codex_model=$(yq eval "${base}.codex.model" "$config_file")
+  codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
+  claude_model=$(yq eval "${base}.claude.model" "$config_file")
+  claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
+  preamble=$(yq eval "${base}.preamble" "$config_file")
+  unset KIND
+}
+
+# Builds the final "prompt" from the kind's preamble plus scope, confidence,
+# and any trailing prompt words. A preamble of "-" means the kind takes no
+# scope/confidence and no skill invocation is prepended.
+build_prompt() {
+  if [ "$preamble" = '-' ]; then
+    if [ -n "$scope" ]; then
+      echo "scope is not supported for kind: $kind" >&2
+      exit 1
+    fi
+    if [ -n "$confidence" ]; then
+      echo "confidence is not supported for kind: $kind" >&2
+      exit 1
+    fi
+    preamble=
+  else
+    scope=${scope:-.}
+    if [ -n "$confidence" ]; then
+      preamble="in $scope with >= $confidence confidence $preamble"
+    else
+      preamble="in $scope $preamble"
+    fi
+  fi
+  readonly scope
+
+  prompt=$*
+  if [ -n "$preamble" ]; then
+    prompt="${skill_prefix}${kind} ${preamble}"
+    if [ $# -gt 0 ]; then
+      prompt="$prompt"$'\n\n'"$*"
+    fi
+  fi
+}
+
+# Builds the provider's CLI invocation into the "command" array.
+build_command() {
+  case $provider in
+  codex)
+    command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
+    ;;
+  claude)
+    command=(claude --model "$model" --effort "$reasoning")
+    ;;
+  esac
+
+  if [ -n "$prompt" ]; then
+    command+=("$prompt")
+  fi
+}
+
 if [ $# -lt 2 ]; then
   usage
 fi
@@ -21,33 +124,9 @@ readonly provider=$1
 readonly kind=$2
 shift 2
 
-scope=
-confidence=
-while [ $# -gt 0 ]; do
-  case $1 in
-  -s | --scope)
-    if [ $# -lt 2 ] || [ -z "$2" ]; then
-      usage
-    fi
-    scope=$2
-    shift 2
-    ;;
-  -c | --confidence)
-    if [ $# -lt 2 ] || [ -z "$2" ]; then
-      usage
-    fi
-    confidence=$2
-    shift 2
-    ;;
-  --)
-    shift
-    break
-    ;;
-  *)
-    break
-    ;;
-  esac
-done
+parse_flags "$@"
+set -- "${prompt_args[@]}"
+
 case $provider in
 codex | claude)
   ;;
@@ -67,24 +146,7 @@ if ! command -v yq >/dev/null 2>&1; then
   exit 1
 fi
 
-export KIND=$kind
-
-if [ "$(yq eval '.kinds | has(env(KIND))' "$config_file")" = true ]; then
-  base='.kinds[env(KIND)]'
-elif [ -d "$skills_dir/$kind" ]; then
-  base='.kinds.default'
-else
-  echo "unknown kind: $kind" >&2
-  exit 1
-fi
-
-codex_model=$(yq eval "${base}.codex.model" "$config_file")
-codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
-claude_model=$(yq eval "${base}.claude.model" "$config_file")
-claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
-preamble=$(yq eval "${base}.preamble" "$config_file")
-
-unset KIND
+load_kind_config
 
 case $provider in
 codex)
@@ -104,45 +166,7 @@ if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasonin
   exit 1
 fi
 
-if [ "$preamble" = '-' ]; then
-  if [ -n "$scope" ]; then
-    echo "scope is not supported for kind: $kind" >&2
-    exit 1
-  fi
-  if [ -n "$confidence" ]; then
-    echo "confidence is not supported for kind: $kind" >&2
-    exit 1
-  fi
-  preamble=
-else
-  scope=${scope:-.}
-  if [ -n "$confidence" ]; then
-    preamble="in $scope with >= $confidence confidence $preamble"
-  else
-    preamble="in $scope $preamble"
-  fi
-fi
-readonly scope
-
-prompt=$*
-if [ -n "$preamble" ]; then
-  prompt="${skill_prefix}${kind} ${preamble}"
-  if [ $# -gt 0 ]; then
-    prompt="$prompt"$'\n\n'"$*"
-  fi
-fi
-
-case $provider in
-codex)
-  command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
-  ;;
-claude)
-  command=(claude --model "$model" --effort "$reasoning")
-  ;;
-esac
-
-if [ -n "$prompt" ]; then
-  command+=("$prompt")
-fi
+build_prompt "$@"
+build_command
 
 exec "${command[@]}"
