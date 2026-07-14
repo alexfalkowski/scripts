@@ -21,7 +21,7 @@ if [ -z "$kind" ] || [ -z "$package" ] || [ -z "$version" ]; then
   usage
 fi
 
-# Find the matching tool path and version token in the Dockerfile.
+# Find the matching package source, path, and version token in the Dockerfile.
 package_version_entry() {
   local dockerfile=$1
 
@@ -42,9 +42,17 @@ package_version_entry() {
     }
 
     {
+      if ($1 == "FROM") {
+        split($2, parts, ":")
+        if (parts[1] == package && parts[2] != "") {
+          print "from\t" parts[1] "\t" parts[2]
+          exit
+        }
+      }
+
       for (i = 1; i <= NF - 2; i++) {
         if (($i == "install-image-tool" || $i == "install-go-tool") && matches_package($(i + 1))) {
-          print $(i + 1) "\t" $(i + 2)
+          print "tool\t" $(i + 1) "\t" $(i + 2)
           exit
         }
       }
@@ -52,8 +60,8 @@ package_version_entry() {
   ' "$dockerfile"
 }
 
-# Read the matching tool path from the Dockerfile.
-package_path() {
+# Read the matching package source from the Dockerfile.
+package_version_type() {
   local dockerfile=$1
   local entry=$(package_version_entry "$dockerfile")
   local tab=$'\t'
@@ -61,12 +69,23 @@ package_path() {
   echo "${entry%%"$tab"*}"
 }
 
-# Read the matching tool version token from the Dockerfile.
+# Read the matching package path or image from the Dockerfile.
+package_path() {
+  local dockerfile=$1
+  local entry=$(package_version_entry "$dockerfile")
+  local tab=$'\t'
+
+  entry=${entry#*"$tab"}
+  echo "${entry%%"$tab"*}"
+}
+
+# Read the matching package version token from the Dockerfile.
 package_version_token() {
   local dockerfile=$1
   local entry=$(package_version_entry "$dockerfile")
   local tab=$'\t'
 
+  entry=${entry#*"$tab"}
   echo "${entry##*"$tab"}"
 }
 
@@ -165,14 +184,50 @@ update_tool_version() {
   sed -i -E "0,/(${path_pattern}[[:space:]]+)${token_pattern}/s//\\1${version}/" "$dockerfile"
 }
 
+# Preserve an existing base image tag suffix when only the version changes.
+from_version() {
+  local dockerfile=$1
+  local current_version=$(package_version_token "$dockerfile")
+
+  if [[ $current_version == *-* && $version != *-* ]]; then
+    echo "$version-${current_version#*-}"
+  else
+    echo "$version"
+  fi
+}
+
+# Resolve the requested package version using the Dockerfile's tag semantics.
+package_target_version() {
+  local dockerfile=$1
+
+  if [ "$(package_version_type "$dockerfile")" = from ]; then
+    from_version "$dockerfile"
+  else
+    echo "$version"
+  fi
+}
+
+# Replace a base image version tag in the Dockerfile.
+update_from_version() {
+  local dockerfile=$1
+  local image_pattern=$(version_regex_escape "$(package_path "$dockerfile")")
+  local token_pattern=$(version_regex_escape "$(package_version_token "$dockerfile")")
+  local updated_version=$(from_version "$dockerfile")
+
+  sed -i -E "0,/^FROM[[:space:]]+(${image_pattern}:)${token_pattern}/s//FROM \\1${updated_version}/" "$dockerfile"
+}
+
 # Replace the first matching package version in the Dockerfile.
 update_package_version() {
   local dockerfile=$1
+  local type=$(package_version_type "$dockerfile")
   local token=$(package_version_token "$dockerfile")
   local variable=$(version_variable "$token")
 
   if [ -n "$variable" ]; then
     update_env_version "$dockerfile" "$variable"
+  elif [ "$type" = from ]; then
+    update_from_version "$dockerfile"
   else
     update_tool_version "$dockerfile"
   fi
@@ -185,6 +240,7 @@ update_kind() {
   local makefile="$image_kind/Makefile"
   local old_package_version=$(current_package_version "$dockerfile")
   local old_image_version=$(image_current_version "$makefile")
+  local target_package_version=$(package_target_version "$dockerfile")
 
   if [ -z "$old_package_version" ]; then
     echo "could not find package '$package' in $dockerfile" >&2
@@ -196,7 +252,7 @@ update_kind() {
     exit 1
   fi
 
-  if [ "$old_package_version" = "$version" ]; then
+  if [ "$old_package_version" = "$target_package_version" ]; then
     echo "package '$package' is already at version $version in $dockerfile" >&2
     exit 1
   fi
@@ -213,12 +269,13 @@ update_kind() {
 update_all() {
   local found=false
   local updated=false
-  local dockerfile makefile old_package_version old_image_version package_bump next_image_version
+  local dockerfile makefile old_package_version target_package_version old_image_version package_bump next_image_version
 
   while IFS= read -r dockerfile; do
     dockerfile=${dockerfile#./}
     makefile="${dockerfile%/Dockerfile}/Makefile"
     old_package_version=$(current_package_version "$dockerfile")
+    target_package_version=$(package_target_version "$dockerfile")
 
     # This Dockerfile does not install the requested package.
     if [ -z "$old_package_version" ]; then
@@ -228,7 +285,7 @@ update_all() {
     found=true
 
     # It matches the package, but there is nothing to change for this image.
-    if [ "$old_package_version" = "$version" ]; then
+    if [ "$old_package_version" = "$target_package_version" ]; then
       continue
     fi
 

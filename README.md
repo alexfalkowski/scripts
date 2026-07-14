@@ -705,6 +705,7 @@ Example:
 ```bash
 update-docker-dep k8s doctl 1.155.0
 update-docker-dep all trivy 0.72.0
+update-docker-dep root ruby 4.0.6
 ```
 
 Behavior:
@@ -715,9 +716,11 @@ Behavior:
   `<kind>` is `all`.
 - Reads `<kind>/Dockerfile` and `<kind>/Makefile`, or every matching
   `Dockerfile` and sibling `Makefile` when `<kind>` is `all`.
-- Finds the first `install-image-tool` or `install-go-tool` entry matching
-  `<package>` in each Dockerfile.
+- Finds the first `FROM <package>:<version>`, `install-image-tool`, or
+  `install-go-tool` entry matching `<package>` in each Dockerfile.
 - Updates either:
+  - the version tag after a matching `FROM` image, preserving a suffix such as
+    `-slim-trixie` when `<version>` is a bare version
   - the direct version token after the matched tool path
   - the referenced `ENV` value when the version token is a shell variable
 - Bumps each updated image `Makefile` `VERSION`:
