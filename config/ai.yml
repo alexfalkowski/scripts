@@ -10,7 +10,7 @@ kinds:
   code:
     codex:
       model: gpt-5.6-terra
-      reasoning: xhigh
+      reasoning: high
     claude:
       model: sonnet
       effort: high
