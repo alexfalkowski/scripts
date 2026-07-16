@@ -6,6 +6,18 @@
 # `default` configures any kind that has no entry of its own here but matches
 # a skill directory under bin/skills/<kind>, so new shared skills work with
 # `ai` without editing this file.
+profiles:
+  ledger: &ledger
+    codex:
+      model: gpt-5.6-sol
+      reasoning: xhigh
+    claude:
+      model: opus
+      effort: xhigh
+    preamble: >-
+      with agents and a goal. Record confirmed findings in the ledger, update
+      .gitignore only if required, report findings or none, then stop—no next
+      steps or implementation offers.
 kinds:
   code:
     codex:
@@ -15,6 +27,10 @@ kinds:
       model: sonnet
       effort: high
     preamble: "-"
+  code-issues: *ledger
+  feature-gaps: *ledger
+  project-gaps: *ledger
+  reliability-gaps: *ledger
   research:
     codex:
       model: gpt-5.6-terra
@@ -23,6 +39,14 @@ kinds:
       model: opus
       effort: xhigh
     preamble: "-"
+  review-pr:
+    codex:
+      model: gpt-5.6-terra
+      reasoning: high
+    claude:
+      model: sonnet
+      effort: high
+    preamble: with agents and a goal
   question:
     codex:
       model: gpt-5.6-luna
@@ -31,6 +55,7 @@ kinds:
       model: sonnet
       effort: medium
     preamble: "-"
+  test-gaps: *ledger
   default:
     codex:
       model: gpt-5.6-sol
