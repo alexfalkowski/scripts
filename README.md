@@ -33,6 +33,8 @@ Top-level scripts:
 - `rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
 - `rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
 - `update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
+- `update-buf`: run Buf-related bulk actions over configured repository sets.
+- `update-buf-dep`: update pinned Buf remote plugins and regenerate outputs.
 - `update-bundler`: install a Bundler version and run follow-up make targets.
 - `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
 - `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
@@ -64,13 +66,14 @@ Additional requirements by script:
 - `rotate-oauth-ci`: `curl`, `jq`
 - `update-bundler` and the `update-ruby ... bundler` action: `ruby`, RubyGems
   (`gem`)
+- `update-buf-dep`: `buf`, `curl`, `jq`, `yq`
 - `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
 - `update-docker-dep`: `awk`, GNU `sed`
 - `update-go-dep`: `ruby`
 - `update-root`: `awk`, `find`
 
 > [!IMPORTANT]
-> Bulk scripts (`update`, `update-service`, `update-ruby`, and `rotate-ci`) call
+> Bulk scripts (`update`, `update-buf`, `update-service`, `update-ruby`, and `rotate-ci`) call
 > other scripts by command name after changing directories or iterating configured
 > slugs. Add this repository to `PATH` so those commands resolve correctly.
 
@@ -129,7 +132,7 @@ repository Trivy scan through the shared `bin` submodule.
 
 ## 🧭 Directory sets used by bulk scripts
 
-`update`, `update-service`, and `update-ruby` read directories from
+`update`, `update-buf`, `update-service`, and `update-ruby` read directories from
 [`lib/dirs.sh`](lib/dirs.sh).
 
 Defined arrays:
@@ -152,7 +155,7 @@ Bulk scripts run their actions inside every configured target repository. When
 a script finalizes with `make ready`, the shared Git workflow commits all
 changes, force-pushes the current branch with a lease, opens a GitHub PR, and
 enables auto squash-merge. This applies directly or transitively to
-`update-ci`, `update-bundler`, `update-ruby-dep`, `update-service-dep`,
+`update-buf-dep`, `update-ci`, `update-bundler`, `update-ruby-dep`, `update-service-dep`,
 `update-docker-dep`, `update-root`, and `update-submodule`.
 
 `done` actions run `make done` in each target repository. That shared workflow
@@ -229,6 +232,16 @@ This runs submodule updates in each configured repo and finalizes with
 ```
 
 Replace `<version>` with the Bundler version you intend to roll out.
+
+### 🧬 Update Buf remote plugins
+
+```bash
+./update-buf all new svc "update Buf dependencies"
+./update-buf all done
+```
+
+This only updates repositories with a Buf-enabled Makefile and pinned remote
+plugins in `buf.gen.yaml`.
 
 ### 💠 Upgrade Bundler in one target repo
 
@@ -589,6 +602,65 @@ Examples:
 ./update-ruby services bundler 2.5.6 "upgrade bundler"
 ./update-ruby all done
 ```
+
+### 🧬 `update-buf`
+
+Run Buf dependency actions across configured repositories.
+
+Syntax:
+
+```bash
+./update-buf <dirs> <action> [args...]
+```
+
+`<dirs>`:
+
+- `ruby`
+- `go`
+- `services`
+- `all`
+
+Actions:
+
+- `new`: `update-buf-dep <kind> <desc>`
+- `done`: `make done`
+
+Examples:
+
+```bash
+./update-buf all new svc "update Buf dependencies"
+./update-buf all done
+```
+
+### 🧬 `update-buf-dep`
+
+Run inside a target repository.
+
+Syntax:
+
+```bash
+update-buf-dep <kind> <desc>
+```
+
+Example:
+
+```bash
+update-buf-dep svc "update Buf dependencies"
+```
+
+Behavior:
+
+- Finds each `Makefile` that includes `bin/build/make/buf.mak`, including
+  relative-path variants.
+- Skips the repository when no matching directory contains `buf.gen.yaml` with
+  a pinned `buf.build/...:<version>` remote plugin.
+- Resolves each pinned remote plugin to its latest Buf version without writing
+  generated output during resolution.
+- Starts `make name=deps new-<kind>` only when a plugin version changes.
+- Updates `buf.gen.yaml`, then runs `make -C <dir> update-all-dep` and
+  `make -C <dir> generate` for every changed Buf directory.
+- Finalizes with
+  `make msg="updated buf dependencies" desc="<desc>" ready`.
 
 ### 💠 `update-bundler`
 

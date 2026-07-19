@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# Updates pinned Buf remote plugins and regenerates their outputs.
+set -eo pipefail
+
+readonly kind=$1
+readonly desc=$2
+
+declare -a configs
+declare -a remotes
+declare -a latest_remotes
+declare -a processed_configs
+
+latest_remote_plugin() {
+  local remote=$1
+  local plugin_path
+  local owner
+  local name
+  local latest_version
+
+  plugin_path="${remote%:*}"
+  plugin_path="${plugin_path#buf.build/}"
+  owner="${plugin_path%%/*}"
+  name="${plugin_path#*/}"
+  latest_version="$(
+    jq -n --arg owner "$owner" --arg name "$name" '{owner: $owner, name: $name}' |
+      curl --fail --silent --show-error --http1.1 \
+        --header 'Content-Type: application/json' \
+        --header 'Connect-Protocol-Version: 1' \
+        --header 'Accept: application/json' \
+        --data @- \
+        https://buf.build/buf.alpha.registry.v1alpha1.PluginCurationService/GetLatestCuratedPlugin |
+      jq -er '.plugin.version'
+  )"
+
+  printf '%s:%s\n' "${remote%:*}" "$latest_version"
+}
+
+while IFS= read -r -d '' makefile; do
+  dir="$(dirname "$makefile")"
+  config="${dir}/buf.gen.yaml"
+
+  [ -f "$config" ] || continue
+
+  while IFS= read -r remote; do
+    latest_remote="$(latest_remote_plugin "$remote")"
+
+    configs+=("$config")
+    remotes+=("$remote")
+    latest_remotes+=("$latest_remote")
+  done < <(yq -r '.plugins[]? | select((.remote // "") | test("^buf\\.build/.+:[^:]+$")) | .remote' "$config")
+done < <(rg -l -0 '^[[:space:]]*-?include[[:space:]]+.*bin/build/make/buf\.mak([[:space:]]|$)' -g Makefile)
+
+changed=false
+for index in "${!configs[@]}"; do
+  [ "${remotes[$index]}" = "${latest_remotes[$index]}" ] || changed=true
+done
+
+[ "$changed" = true ] || exit 0
+
+make name=deps new-"${kind}"
+
+for config_index in "${!configs[@]}"; do
+  config="${configs[$config_index]}"
+
+  for processed_config in "${processed_configs[@]}"; do
+    [ "$config" = "$processed_config" ] && continue 2
+  done
+
+  processed_configs+=("$config")
+  dir="$(dirname "$config")"
+  changed=false
+
+  for index in "${!configs[@]}"; do
+    [ "$config" = "${configs[$index]}" ] || continue
+    [ "${remotes[$index]}" = "${latest_remotes[$index]}" ] && continue
+
+    remote="${remotes[$index]}" latest_remote="${latest_remotes[$index]}" yq -i '(.plugins[] | select(.remote == strenv(remote))).remote = strenv(latest_remote)' "$config"
+    changed=true
+  done
+
+  "$changed" || continue
+
+  make -C "$dir" update-all-dep
+  make -C "$dir" generate
+done
+
+make msg="updated buf dependencies" desc="${desc}" ready

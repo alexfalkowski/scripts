@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1010,SC1091,SC2154
+
+# Runs Buf dependency updates across configured repository sets.
+set -eo pipefail
+
+source "$(dirname "$0")"/lib/dirs.sh
+readonly dirs=$1
+readonly action=$2
+
+case $dirs in
+ruby)
+  readonly directories=("${ruby[@]}")
+  ;;
+
+go)
+  readonly directories=("${go[@]}")
+  ;;
+
+services)
+  readonly directories=("${services[@]}")
+  ;;
+
+all)
+  readonly directories=("${all[@]}")
+  ;;
+esac
+
+case $action in
+new)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && update-buf-dep "$3" "$4")
+  done
+  ;;
+
+done)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && make done)
+  done
+  ;;
+esac
