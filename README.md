@@ -358,10 +358,13 @@ kinds:
 ```
 
 Ledger kinds use `find_preamble` for normal finding requests and
-`approval_preamble` for the `go` approval shortcut. Other kinds use
-`preamble`; `code` has no injected preamble (`preamble: "-"`) and is not a
-`bin` skill, so it always needs its own entry. Any other kind that has no entry
-of its own falls back to `kinds.default` as long as a matching
+`approval_preamble` for the `go` approval shortcut. The dedicated `go` entry
+sets the provider model and reasoning level for every `go` invocation, while
+the ledger kind resolved from its ID still supplies the prompt and approval
+preamble. Other kinds use `preamble`; `code` has no injected preamble
+(`preamble: "-"`) and is not a `bin` skill, so it always needs its own entry.
+Any other kind that has no entry of its own falls back to `kinds.default` as
+long as a matching
 `bin/skills/<kind>` directory exists, so new shared skills work with `ai`
 without editing this file. Add a kind-specific entry only to override the
 default model, reasoning, or preamble for that skill.
@@ -399,7 +402,8 @@ canonical `Approved ID` prompt. For example, `ai codex go -s lib ISSUE-1/2/3`
 runs `code-issues` against `lib/ISSUES.md` and forwards
 `Approved ISSUE-1/2/3 in lib/ISSUES.md with agents and a goal`. The skill owns
 the batch's sequential validation and stop behavior; the resolved skill's
-configured model, reasoning level, and approval preamble still apply.
+approval preamble still applies, while the dedicated `go` model settings are
+used for the session.
 
 ### 🚀 `create-ci`
 
