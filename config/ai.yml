@@ -21,10 +21,10 @@ profiles:
   ledger: &ledger
     codex:
       model: gpt-5.6-sol
-      reasoning: xhigh
+      reasoning: high
     claude:
       model: opus
-      effort: xhigh
+      effort: high
     find_preamble: >-
       with agents and a goal. Record confirmed findings in the ledger, update
       .gitignore only if required, report findings or none, then stop—no next

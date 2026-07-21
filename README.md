@@ -322,7 +322,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-f <file>] [--] [prompt...]
+ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [--] [prompt...]
 ai ledger <kind> [-s <scope>] [<ledger-id>]
 ```
 
@@ -333,6 +333,7 @@ ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
 ai codex test-gaps -s lib "focus on the command-line interface"
 ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
+ai codex test-gaps -s lib --reasoning high "focus on the command-line interface"
 ai codex go -s lib ISSUE-1/2/3
 ai ledger code-issues -s lib
 ai ledger code-issues -s lib ISSUE-12
@@ -375,9 +376,11 @@ and its find or generic preamble. The scope defaults to `.` and can be
 overridden with `-s <scope>` (or the long-form alias `--scope <scope>`).
 Confidence is omitted by default, preserving the shared `>= 90%` minimum, and
 can be overridden with `-c <confidence>` (or `--confidence <confidence>`),
-such as `95%`. Use `--` before the prompt when it begins with `-s`, `--scope`,
-`-c`, `--confidence`,
-`-f`, or `--file`. Use `-f <file>` (or `--file <file>`) to read a multiline
+such as `95%`. The configured reasoning level can be overridden for one run
+with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `--`
+before the prompt when it begins with `-s`, `--scope`, `-c`, `--confidence`,
+`-e`, `--effort`, `--reasoning`, `-f`, or `--file`. Use `-f <file>` (or
+`--file <file>`) to read a multiline
 prompt from a readable regular file. The file path is relative to the current
 directory, and a file prompt cannot be combined with inline prompt words. A
 `preamble: "-"` entry remains unscoped and rejects scope and confidence
