@@ -340,7 +340,7 @@ ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
 ```
 
-The model, reasoning level, and prompt preamble are configured in
+The model, reasoning level, and mode-specific prompt preambles are configured in
 [`config/ai.yml`](config/ai.yml), read with `yq`. Each entry under `kinds`
 looks like this:
 
@@ -353,23 +353,27 @@ kinds:
     claude:
       model: opus
       effort: xhigh
-    preamble: with agents and a goal
+    find_preamble: with agents and a goal
+    approval_preamble: with agents and a goal
 ```
 
-`code` has no injected preamble (`preamble: "-"`) and is not a `bin` skill, so
-it always needs its own entry. Any other kind that has no entry of its own
-falls back to `kinds.default` as long as a matching `bin/skills/<kind>`
-directory exists, so new shared skills work with `ai` without editing this
-file. Add a kind-specific entry only to override the default model,
-reasoning, or preamble for that skill.
+Ledger kinds use `find_preamble` for normal finding requests and
+`approval_preamble` for the `go` approval shortcut. Other kinds use
+`preamble`; `code` has no injected preamble (`preamble: "-"`) and is not a
+`bin` skill, so it always needs its own entry. Any other kind that has no entry
+of its own falls back to `kinds.default` as long as a matching
+`bin/skills/<kind>` directory exists, so new shared skills work with `ai`
+without editing this file. Add a kind-specific entry only to override the
+default model, reasoning, or preamble for that skill.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
 Claude, followed by `in <scope>`, an optional `with >= <confidence> confidence`,
-and its preamble. The scope defaults to `.` and can be overridden with `-s
-<scope>` (or the long-form alias `--scope <scope>`). Confidence is omitted by
-default, preserving the shared `>= 90%` minimum, and can be overridden with
-`-c <confidence>` (or `--confidence <confidence>`), such as `95%`. Use `--`
-before the prompt when it begins with `-s`, `--scope`, `-c`, `--confidence`,
+and its find or generic preamble. The scope defaults to `.` and can be
+overridden with `-s <scope>` (or the long-form alias `--scope <scope>`).
+Confidence is omitted by default, preserving the shared `>= 90%` minimum, and
+can be overridden with `-c <confidence>` (or `--confidence <confidence>`),
+such as `95%`. Use `--` before the prompt when it begins with `-s`, `--scope`,
+`-c`, `--confidence`,
 `-f`, or `--file`. Use `-f <file>` (or `--file <file>`) to read a multiline
 prompt from a readable regular file. The file path is relative to the current
 directory, and a file prompt cannot be combined with inline prompt words. A
@@ -393,9 +397,9 @@ prefix and a numeric suffix.
 resolves its skill from the contract's `id_prefix`, and expands it to the
 canonical `Approved ID` prompt. For example, `ai codex go -s lib ISSUE-1/2/3`
 runs `code-issues` against `lib/ISSUES.md` and forwards
-`Approved ISSUE-1/2/3` unchanged. The skill owns the batch's sequential
-validation and stop behavior; the resolved skill's configured model, reasoning
-level, and preamble still apply.
+`Approved ISSUE-1/2/3 in lib/ISSUES.md with agents and a goal`. The skill owns
+the batch's sequential validation and stop behavior; the resolved skill's
+configured model, reasoning level, and approval preamble still apply.
 
 ### 🚀 `create-ci`
 

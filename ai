@@ -56,7 +56,7 @@ parse_flags() {
 }
 
 # Resolves the kind's yq base path, falling back to .kinds.default for any
-# kind with a skills directory, then reads its model/reasoning/preamble.
+# kind with a skills directory, then reads its model/reasoning/prompt preamble.
 load_kind_config() {
   export KIND=$kind
   if [ "$(yq eval '.kinds | has(env(KIND))' "$config_file")" = true ]; then
@@ -72,7 +72,8 @@ load_kind_config() {
   codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
   claude_model=$(yq eval "${base}.claude.model" "$config_file")
   claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
-  preamble=$(yq eval "${base}.preamble" "$config_file")
+  preamble=$(yq eval "${base}.find_preamble // ${base}.preamble" "$config_file")
+  approval_preamble=$(yq eval "${base}.approval_preamble // ${base}.preamble" "$config_file")
   unset KIND
 }
 
@@ -247,6 +248,11 @@ build_prompt() {
   fi
   prompt=$prompt_input
 
+  if [ "$prompt_mode" = approval ]; then
+    prompt="$prompt_input in $resolved_ledger $approval_preamble"
+    return
+  fi
+
   if [ -n "$preamble" ]; then
     prompt="${skill_prefix}${kind} ${preamble}"
     if [ -n "$resolved_ledger" ]; then
@@ -275,6 +281,8 @@ build_command() {
 }
 
 main() {
+  prompt_mode=standard
+
   if [ $# -lt 1 ]; then
     usage
   fi
@@ -317,9 +325,9 @@ main() {
   fi
 
   if [ "$kind" = go ]; then
+    prompt_mode=approval
     resolve_go_kind
   fi
-  readonly kind
   set -- "${prompt_args[@]}"
 
   load_kind_config
