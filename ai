@@ -276,6 +276,13 @@ build_command() {
   fi
 }
 
+# Removes the per-launch Zsh cache while retaining the requested command's status.
+cleanup_zsh_cache() {
+  local exit_status=$?
+  rm -rf -- "$zsh_cache_dir" || :
+  exit "$exit_status"
+}
+
 main() {
   prompt_mode=standard
 
@@ -320,6 +327,11 @@ main() {
     exit 1
   fi
 
+  if ! command -v zsh >/dev/null 2>&1; then
+    echo "zsh is required to start $provider sessions" >&2
+    exit 1
+  fi
+
   if [ "$kind" = go ]; then
     prompt_mode=approval
     resolve_go_kind
@@ -350,7 +362,15 @@ main() {
   build_prompt "$@"
   build_command
 
-  exec "${command[@]}"
+  zsh_cache_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-zsh-cache.XXXXXX")" || {
+    echo "unable to create temporary Zsh cache directory" >&2
+    exit 1
+  }
+  trap cleanup_zsh_cache EXIT
+  export ZSH_CACHE_DIR="$zsh_cache_dir"
+  export ZSH_COMPDUMP="$zsh_cache_dir/.zcompdump"
+
+  zsh -lic 'exec "$@"' zsh "${command[@]}"
 }
 
 main "$@"

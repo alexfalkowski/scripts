@@ -56,7 +56,7 @@ Base requirements:
 
 Additional requirements by script:
 
-- `ai`: `yq`, plus Codex CLI (`codex`) and/or Claude Code (`claude`), depending
+- `ai`: `yq`, `zsh`, plus Codex CLI (`codex`) and/or Claude Code (`claude`), depending
   on the selected provider
 - `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
