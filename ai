@@ -56,7 +56,7 @@ parse_flags() {
 }
 
 # Resolves the kind's yq base path, falling back to .kinds.default for any
-# kind with a skills directory, then reads its model/reasoning/prompt preamble.
+# kind with a skills directory, then reads its provider settings and preamble.
 load_kind_config() {
   export KIND=$kind
   if [ "$(yq eval '.kinds | has(env(KIND))' "$config_file")" = true ]; then
@@ -68,10 +68,18 @@ load_kind_config() {
     exit 1
   fi
 
-  codex_model=$(yq eval "${base}.codex.model" "$config_file")
-  codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
-  claude_model=$(yq eval "${base}.claude.model" "$config_file")
-  claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
+  if [ "$prompt_mode" = approval ]; then
+    codex_model=$(yq eval '.kinds.go.codex.model' "$config_file")
+    codex_reasoning=$(yq eval '.kinds.go.codex.reasoning' "$config_file")
+    claude_model=$(yq eval '.kinds.go.claude.model' "$config_file")
+    claude_effort=$(yq eval '.kinds.go.claude.effort' "$config_file")
+  else
+    codex_model=$(yq eval "${base}.codex.model" "$config_file")
+    codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
+    claude_model=$(yq eval "${base}.claude.model" "$config_file")
+    claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
+  fi
+
   preamble=$(yq eval "${base}.find_preamble // ${base}.preamble" "$config_file")
   approval_preamble=$(yq eval "${base}.approval_preamble // ${base}.preamble" "$config_file")
   unset KIND
