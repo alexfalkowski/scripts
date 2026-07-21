@@ -1,5 +1,7 @@
 # Read by `ai`. Each kind configures the Codex and Claude model/reasoning
-# level to use, plus a prompt preamble.
+# level to use, plus mode-specific prompt preambles. `find_preamble` applies
+# to ledger-find invocations; `approval_preamble` applies to the `go` approval
+# shortcut.
 #
 # Use "-" as a kind's preamble when it should not invoke a provider skill.
 #
@@ -14,10 +16,11 @@ profiles:
     claude:
       model: opus
       effort: xhigh
-    preamble: >-
+    find_preamble: >-
       with agents and a goal. Record confirmed findings in the ledger, update
       .gitignore only if required, report findings or none, then stop—no next
       steps or implementation offers.
+    approval_preamble: with agents and a goal
 kinds:
   code:
     codex:
@@ -64,3 +67,4 @@ kinds:
       model: opus
       effort: xhigh
     preamble: with agents and a goal
+    approval_preamble: with agents and a goal
