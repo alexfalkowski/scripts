@@ -332,6 +332,7 @@ ai codex code "add a cache for this request"
 ai claude test-gaps "focus on the command-line interface"
 ai codex test-gaps -s lib "focus on the command-line interface"
 ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
+ai codex go -s lib ISSUE-1/2/3
 ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
 ```
@@ -372,6 +373,19 @@ directory, and a file prompt cannot be combined with inline prompt words. A
 `preamble: "-"` entry remains unscoped and rejects scope and confidence
 options. The selected skill must already be available in the repository where
 you run `ai`.
+
+Ledger skills load their skill-owned `ledger.yaml` contract and add the exact
+ledger path derived from the selected scope to the generated prompt. For
+example, `code-issues -s lib` supplies `lib/ISSUES.md`, so an approved entry
+does not need to search for its ledger.
+
+`go` is a ledger-only shortcut that accepts one ID or compact same-prefix batch,
+resolves its skill from the contract's `id_prefix`, and expands it to the
+canonical `Approved ID` prompt. For example, `ai codex go -s lib ISSUE-1/2/3`
+runs `code-issues` against `lib/ISSUES.md` and forwards
+`Approved ISSUE-1/2/3` unchanged. The skill owns the batch's sequential
+validation and stop behavior; the resolved skill's configured model, reasoning
+level, and preamble still apply.
 
 ### 🚀 `create-ci`
 

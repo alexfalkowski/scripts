@@ -75,6 +75,84 @@ load_kind_config() {
   unset KIND
 }
 
+# Routes a ledger ID or compact same-prefix batch to its skill and canonical
+# Approved command.
+resolve_go_kind() {
+  if [ -n "$prompt_file" ] || [ "${#prompt_args[@]}" -ne 1 ]; then
+    echo "go requires exactly one ledger ID" >&2
+    exit 1
+  fi
+
+  ledger_id=${prompt_args[0]}
+  id_prefix=${ledger_id%%-*}
+  if [ "$id_prefix" = "$ledger_id" ] || [ -z "$id_prefix" ]; then
+    echo "invalid ledger ID: $ledger_id" >&2
+    exit 1
+  fi
+
+  entry_batch=${ledger_id#"$id_prefix"-}
+  case $entry_batch in
+  '' | /* | */ | *//* | *[!0-9/]*)
+    echo "invalid ledger ID: $ledger_id" >&2
+    exit 1
+    ;;
+  esac
+
+  go_kind=
+  for candidate_contract in "$skills_dir"/*/ledger.yaml; do
+    if [ "$(yq eval '.id_prefix' "$candidate_contract")" = "$id_prefix" ]; then
+      if [ -n "$go_kind" ]; then
+        echo "ambiguous ledger ID prefix: $id_prefix" >&2
+        exit 1
+      fi
+      go_kind=${candidate_contract%/ledger.yaml}
+      go_kind=${go_kind##*/}
+    fi
+  done
+
+  if [ -z "$go_kind" ]; then
+    echo "unknown ledger ID prefix: $id_prefix" >&2
+    exit 1
+  fi
+
+  kind=$go_kind
+  prompt_args=("Approved $ledger_id")
+}
+
+# Loads the selected skill's optional ledger contract so the model receives
+# the exact scoped ledger path without searching the workspace.
+load_ledger_contract() {
+  ledger_contract="$skills_dir/$kind/ledger.yaml"
+  ledger_filename=
+
+  if [ ! -r "$ledger_contract" ]; then
+    return
+  fi
+
+  ledger_version=$(yq eval '.version' "$ledger_contract")
+  ledger_filename=$(yq eval '.ledger_filename' "$ledger_contract")
+  ledger_path_template=$(yq eval '.ledger_path_template' "$ledger_contract")
+
+  if [ "$ledger_version" != 1 ] || [ -z "$ledger_filename" ] || [ "$ledger_filename" = null ] || [ "$ledger_path_template" != '{scope}/{ledger_filename}' ]; then
+    echo "unsupported ledger contract: $ledger_contract" >&2
+    exit 1
+  fi
+}
+
+# Resolves the canonical ledger path from the selected skill contract and scope.
+resolve_ledger() {
+  scope=${scope:-.}
+  resolved_ledger=
+  if [ -z "$ledger_filename" ]; then
+    return
+  fi
+  if [ "$scope" = / ]; then
+    resolved_ledger="/$ledger_filename"
+  else
+    resolved_ledger="${scope%/}/$ledger_filename"
+  fi
+}
+
 # Builds the final "prompt" from the kind's preamble plus scope, confidence,
 # and either a prompt file or trailing prompt words. A preamble of "-" means
 # the kind takes no scope/confidence and no skill invocation is prepended.
@@ -90,7 +168,7 @@ build_prompt() {
     fi
     preamble=
   else
-    scope=${scope:-.}
+    resolve_ledger
     if [ -n "$confidence" ]; then
       preamble="in $scope with >= $confidence confidence $preamble"
     else
@@ -115,6 +193,9 @@ build_prompt() {
 
   if [ -n "$preamble" ]; then
     prompt="${skill_prefix}${kind} ${preamble}"
+    if [ -n "$resolved_ledger" ]; then
+      prompt="$prompt"$'\n\n'"Exact ledger path: $resolved_ledger"
+    fi
     if [ $# -gt 0 ] || [ -n "$prompt_file" ]; then
       prompt="$prompt"$'\n\n'"$prompt_input"
     fi
@@ -142,11 +223,10 @@ if [ $# -lt 2 ]; then
 fi
 
 readonly provider=$1
-readonly kind=$2
+kind=$2
 shift 2
 
 parse_flags "$@"
-set -- "${prompt_args[@]}"
 
 case $provider in
 codex | claude)
@@ -167,7 +247,14 @@ if ! command -v yq >/dev/null 2>&1; then
   exit 1
 fi
 
+if [ "$kind" = go ]; then
+  resolve_go_kind
+fi
+readonly kind
+set -- "${prompt_args[@]}"
+
 load_kind_config
+load_ledger_contract
 
 case $provider in
 codex)
