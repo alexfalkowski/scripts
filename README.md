@@ -381,10 +381,10 @@ directory, and a file prompt cannot be combined with inline prompt words. A
 options. The selected skill must already be available in the repository where
 you run `ai`.
 
-Ledger skills load their skill-owned `ledger.yaml` contract and add the exact
-ledger path derived from the selected scope to the generated prompt. For
-example, `code-issues -s lib` supplies `lib/ISSUES.md`, so an approved entry
-does not need to search for its ledger.
+Ledger skills own a `ledger.yaml` contract that maps the selected scope to a
+canonical ledger path. The skill resolves that path when needed; normal `ai`
+prompts do not repeat it. The `go` approval shortcut resolves the path when it
+builds its canonical `Approved` command.
 
 Use `ai ledger <kind> [-s <scope>] [<ledger-id>]` to render a skill's scoped
 ledger with `glow`. The scope defaults to `.`, and the kind must define a

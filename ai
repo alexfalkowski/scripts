@@ -121,8 +121,7 @@ resolve_go_kind() {
   prompt_args=("Approved $ledger_id")
 }
 
-# Loads the selected skill's optional ledger contract so the model receives
-# the exact scoped ledger path without searching the workspace.
+# Loads the selected skill's optional ledger contract for path resolution.
 load_ledger_contract() {
   ledger_contract="$skills_dir/$kind/ledger.yaml"
   ledger_filename=
@@ -255,9 +254,6 @@ build_prompt() {
 
   if [ -n "$preamble" ]; then
     prompt="${skill_prefix}${kind} ${preamble}"
-    if [ -n "$resolved_ledger" ]; then
-      prompt="$prompt"$'\n\n'"Exact ledger path: $resolved_ledger"
-    fi
     if [ $# -gt 0 ] || [ -n "$prompt_file" ]; then
       prompt="$prompt"$'\n\n'"$prompt_input"
     fi
