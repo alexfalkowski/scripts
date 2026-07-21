@@ -323,6 +323,7 @@ Syntax:
 
 ```bash
 ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-f <file>] [--] [prompt...]
+ai ledger <kind> [-s <scope>] [<ledger-id>]
 ```
 
 Examples:
@@ -333,6 +334,8 @@ ai claude test-gaps "focus on the command-line interface"
 ai codex test-gaps -s lib "focus on the command-line interface"
 ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
 ai codex go -s lib ISSUE-1/2/3
+ai ledger code-issues -s lib
+ai ledger code-issues -s lib ISSUE-12
 ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
 ```
@@ -378,6 +381,13 @@ Ledger skills load their skill-owned `ledger.yaml` contract and add the exact
 ledger path derived from the selected scope to the generated prompt. For
 example, `code-issues -s lib` supplies `lib/ISSUES.md`, so an approved entry
 does not need to search for its ledger.
+
+Use `ai ledger <kind> [-s <scope>] [<ledger-id>]` to render a skill's scoped
+ledger with `glow`. The scope defaults to `.`, and the kind must define a
+readable `ledger.yaml` contract. For example, `ai ledger code-issues -s lib`
+renders `lib/ISSUES.md`, while `ai ledger code-issues -s lib ISSUE-12` renders
+only the `ISSUE-12` entry. The ID must use the selected skill's configured
+prefix and a numeric suffix.
 
 `go` is a ledger-only shortcut that accepts one ID or compact same-prefix batch,
 resolves its skill from the contract's `id_prefix`, and expands it to the

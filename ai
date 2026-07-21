@@ -10,6 +10,7 @@ readonly skills_dir="$script_dir/bin/skills"
 
 usage() {
   echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-f <file>] [--] [prompt...]" >&2
+  echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
   exit 1
 }
 
@@ -153,6 +154,61 @@ resolve_ledger() {
   fi
 }
 
+# Renders the selected skill's scoped ledger with glow.
+view_ledger() {
+  kind=$1
+  shift
+
+  parse_flags "$@"
+  if [ -n "$confidence" ] || [ -n "$prompt_file" ] || [ "${#prompt_args[@]}" -gt 1 ]; then
+    usage
+  fi
+
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "yq is required to read ledger contracts" >&2
+    exit 1
+  fi
+
+  load_ledger_contract
+  if [ -z "$ledger_filename" ]; then
+    echo "kind does not define a ledger: $kind" >&2
+    exit 1
+  fi
+  resolve_ledger
+
+  ledger_id=${prompt_args[0]}
+  if [ -n "$ledger_id" ]; then
+    ledger_id_prefix=$(yq eval '.id_prefix' "$ledger_contract")
+    entry_number=${ledger_id#"$ledger_id_prefix"-}
+    if [ -z "$ledger_id_prefix" ] || [ "$ledger_id_prefix" = null ] || [ "$entry_number" = "$ledger_id" ] || [ -z "$entry_number" ] || [[ $entry_number = *[!0-9]* ]]; then
+      echo "invalid ledger ID: $ledger_id" >&2
+      exit 1
+    fi
+  fi
+
+  if ! command -v glow >/dev/null 2>&1; then
+    echo "glow is required to view $resolved_ledger" >&2
+    exit 1
+  fi
+
+  if [ -n "$ledger_id" ]; then
+    awk -v id="$ledger_id" '
+      found && /^## / { exit }
+      $0 ~ "^## " id "(:|[[:space:]]|$)" { found = 1 }
+      found { print }
+      END {
+        if (!found) {
+          printf "ledger entry not found: %s\n", id > "/dev/stderr"
+          exit 1
+        }
+      }
+    ' "$resolved_ledger" | glow -- -
+    return
+  fi
+
+  exec glow -- "$resolved_ledger"
+}
+
 # Builds the final "prompt" from the kind's preamble plus scope, confidence,
 # and either a prompt file or trailing prompt words. A preamble of "-" means
 # the kind takes no scope/confidence and no skill invocation is prepended.
@@ -218,63 +274,79 @@ build_command() {
   fi
 }
 
-if [ $# -lt 2 ]; then
-  usage
-fi
+main() {
+  if [ $# -lt 1 ]; then
+    usage
+  fi
 
-readonly provider=$1
-kind=$2
-shift 2
+  if [ "$1" = ledger ]; then
+    if [ $# -lt 2 ]; then
+      usage
+    fi
+    view_ledger "$2" "${@:3}"
+    return
+  fi
 
-parse_flags "$@"
+  if [ $# -lt 2 ]; then
+    usage
+  fi
 
-case $provider in
-codex | claude)
-  ;;
-*)
-  echo "unknown provider: $provider" >&2
-  exit 1
-  ;;
-esac
+  readonly provider=$1
+  kind=$2
+  shift 2
 
-if [ ! -r "$config_file" ]; then
-  echo "unable to read configuration: $config_file" >&2
-  exit 1
-fi
+  parse_flags "$@"
 
-if ! command -v yq >/dev/null 2>&1; then
-  echo "yq is required to read $config_file" >&2
-  exit 1
-fi
+  case $provider in
+  codex | claude)
+    ;;
+  *)
+    echo "unknown provider: $provider" >&2
+    exit 1
+    ;;
+  esac
 
-if [ "$kind" = go ]; then
-  resolve_go_kind
-fi
-readonly kind
-set -- "${prompt_args[@]}"
+  if [ ! -r "$config_file" ]; then
+    echo "unable to read configuration: $config_file" >&2
+    exit 1
+  fi
 
-load_kind_config
-load_ledger_contract
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "yq is required to read $config_file" >&2
+    exit 1
+  fi
 
-case $provider in
-codex)
-  model=$codex_model
-  reasoning=$codex_reasoning
-  skill_prefix='$'
-  ;;
-claude)
-  model=$claude_model
-  reasoning=$claude_effort
-  skill_prefix='/'
-  ;;
-esac
+  if [ "$kind" = go ]; then
+    resolve_go_kind
+  fi
+  readonly kind
+  set -- "${prompt_args[@]}"
 
-if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasoning" = null ]; then
-  echo "unknown kind: $kind" >&2
-  exit 1
-fi
+  load_kind_config
+  load_ledger_contract
 
-build_prompt "$@"
-build_command
+  case $provider in
+  codex)
+    model=$codex_model
+    reasoning=$codex_reasoning
+    skill_prefix='$'
+    ;;
+  claude)
+    model=$claude_model
+    reasoning=$claude_effort
+    skill_prefix='/'
+    ;;
+  esac
 
-exec "${command[@]}"
+  if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasoning" = null ]; then
+    echo "unknown kind: $kind" >&2
+    exit 1
+  fi
+
+  build_prompt "$@"
+  build_command
+
+  exec "${command[@]}"
+}
+
+main "$@"
