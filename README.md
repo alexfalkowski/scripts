@@ -324,51 +324,65 @@ Syntax:
 ```bash
 ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
 ai ledger <kind> [-s <scope>] [<ledger-id>]
+ai skills [--all]
+ai help <kind>
 ```
 
 Examples:
 
 ```bash
 ai codex code "add a cache for this request"
-ai claude test-gaps "focus on the command-line interface"
-ai codex test-gaps -s lib "focus on the command-line interface"
-ai codex test-gaps -s lib -c 95% "focus on the command-line interface"
-ai codex test-gaps -s lib --reasoning high "focus on the command-line interface"
-ai codex go -s lib ISSUE-1/2/3
-ai ledger code-issues -s lib
-ai ledger code-issues -s lib ISSUE-12
+ai claude test-gaps-find "focus on the command-line interface"
+ai codex test-gaps-find -s lib "focus on the command-line interface"
+ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
+ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
+ai codex code-issues-implement -s lib "Start ISSUE-1"
+ai ledger code-issues-implement -s lib
+ai ledger code-issues-implement -s lib ISSUE-12
+ai skills
+ai help doc-gaps-fix
 ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
 ```
 
-The model, reasoning level, and mode-specific prompt preambles are configured in
-[`config/ai.yml`](config/ai.yml), read with `yq`. Each entry under `kinds`
-looks like this:
+The model, reasoning level, and prompt preamble are configured in
+[`config/ai.yml`](config/ai.yml), read with `yq`. Find/audit and
+implement/fix skills have separate model profiles. Entries under `kinds` look
+like this:
 
 ```yaml
 kinds:
-  test-gaps:
+  test-gaps-find:
     codex:
       model: gpt-5.6-sol
       reasoning: max
     claude:
       model: opus
       effort: xhigh
-    find_preamble: with agents and a goal
-    approval_preamble: with agents and a goal
+    preamble: with agents and a goal
+  test-gaps-implement:
+    codex:
+      model: gpt-5.6-terra
+      reasoning: high
+    claude:
+      model: sonnet
+      effort: high
+    preamble: with agents and a goal
 ```
 
-Ledger kinds use `find_preamble` for normal finding requests and
-`approval_preamble` for the `go` approval shortcut. The dedicated `go` entry
-sets the provider model and reasoning level for every `go` invocation, while
-the ledger kind resolved from its ID still supplies the prompt and approval
-preamble. Other kinds use `preamble`; `code` has no injected preamble
-(`preamble: "-"`) and is not a `bin` skill, so it always needs its own entry.
-Any other kind that has no entry of its own falls back to `kinds.default` as
-long as a matching
-`bin/skills/<kind>` directory exists, so new shared skills work with `ai`
-without editing this file. Add a kind-specific entry only to override the
-default model, reasoning, or preamble for that skill.
+Use the explicit `*-find` / `*-implement` names for code, feature, project,
+reliability, and test gaps; use `doc-gaps-audit` / `doc-gaps-fix` for
+documentation. `code` has no injected preamble (`preamble: "-"`) and is not a
+`bin` skill, so it always needs its own entry. Any other kind that has no entry
+of its own falls back to `kinds.default` as long as a matching
+`bin/skills/<kind>` directory exists. Add a kind-specific entry only to
+override the default model, reasoning, or preamble for that skill.
+
+Use `ai skills` for a concise list of the shared skills available through the
+current `bin` submodule. The list uses each skill's shared display metadata and
+hides deprecated aliases by default; pass `--all` to include them. Use
+`ai help <kind>` for the skill's launch syntax, shared guidance, configured
+Codex and Claude models, and ledger ownership when applicable.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
 Claude, followed by `in <scope>`, an optional `with >= <confidence> confidence`,
@@ -390,26 +404,23 @@ directory, and a file prompt cannot be combined with inline prompt words. A
 options. The selected skill must already be available in the repository where
 you run `ai`.
 
-Ledger skills own a `ledger.yaml` contract that maps the selected scope to a
-canonical ledger path. The skill resolves that path when needed; normal `ai`
-prompts do not repeat it. The `go` approval shortcut resolves the path when it
-builds its canonical `Approved` command.
+Ledger-owning implement/fix skills use `ledger.yaml` to map the selected scope
+to a canonical ledger path. The skill resolves that path when needed; normal
+`ai` prompts do not repeat it.
 
 Use `ai ledger <kind> [-s <scope>] [<ledger-id>]` to render a skill's scoped
-ledger with `glow`. The scope defaults to `.`, and the kind must define a
-readable `ledger.yaml` contract. For example, `ai ledger code-issues -s lib`
-renders `lib/ISSUES.md`, while `ai ledger code-issues -s lib ISSUE-12` renders
-only the `ISSUE-12` entry. The ID must use the selected skill's configured
-prefix and a numeric suffix.
+ledger with `glow`. The scope defaults to `.`, and the kind must be the
+ledger-owning implement/fix skill with a readable `ledger.yaml` contract. For
+example, `ai ledger code-issues-implement -s lib` renders `lib/ISSUES.md`,
+while `ai ledger code-issues-implement -s lib ISSUE-12` renders only the
+`ISSUE-12` entry. The ID must use the selected skill's configured prefix and a
+numeric suffix.
 
-`go` is a ledger-only shortcut that accepts one ID or compact same-prefix batch,
-resolves its skill from the contract's `id_prefix`, and expands it to the
-canonical `Approved ID` prompt. For example, `ai codex go -s lib ISSUE-1/2/3`
-runs `code-issues` against `lib/ISSUES.md` and forwards
-`Approved ISSUE-1/2/3 in lib/ISSUES.md with agents and a goal`. The skill owns
-the batch's sequential validation and stop behavior; the resolved skill's
-approval preamble still applies, while the dedicated `go` model settings are
-used for the session.
+To work on an existing entry, start an implement/fix session with that explicit
+skill, such as `ai codex code-issues-implement -s lib "Start ISSUE-1"`. After
+the skill presents and you accept a solution, respond with `Approved ISSUE-1`.
+For a same-prefix batch, use `Approved ISSUE-1/2/3`. The selected skill resolves
+the ledger and owns the batch's sequential validation and stop behavior.
 
 ### 🚀 `create-ci`
 

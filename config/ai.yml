@@ -1,8 +1,6 @@
 # Read by `ai`. Each kind configures the Codex and Claude model/reasoning
-# level to use, plus mode-specific prompt preambles. `find_preamble` applies
-# to ledger-find invocations; `approval_preamble` applies to the `go` approval
-# shortcut. The dedicated `go` entry supplies the shortcut's model settings
-# after its ledger ID resolves to a skill kind.
+# level plus its prompt preamble. Find/audit and implement/fix skills use
+# separate profiles so their model choices remain explicit.
 #
 # Use "-" as a kind's preamble when it should not invoke a provider skill.
 #
@@ -18,25 +16,34 @@ profiles:
       model: sonnet
       effort: high
     preamble: "-"
-  ledger: &ledger
+  find: &find
     codex:
       model: gpt-5.6-sol
       reasoning: high
     claude:
       model: opus
       effort: high
-    find_preamble: >-
-      with agents and a goal. Record confirmed findings in the ledger, update
-      .gitignore only if required, report findings or none, then stop—no next
-      steps or implementation offers.
-    approval_preamble: with agents and a goal
+    preamble: with agents and a goal
+  implement: &implement
+    codex:
+      model: gpt-5.6-terra
+      reasoning: high
+    claude:
+      model: sonnet
+      effort: high
+    preamble: with agents and a goal
 kinds:
   code: *code
-  go: *code
-  code-issues: *ledger
-  feature-gaps: *ledger
-  project-gaps: *ledger
-  reliability-gaps: *ledger
+  code-issues-find: *find
+  code-issues-implement: *implement
+  doc-gaps-audit: *find
+  doc-gaps-fix: *implement
+  feature-gaps-find: *find
+  feature-gaps-implement: *implement
+  project-gaps-find: *find
+  project-gaps-implement: *implement
+  reliability-gaps-find: *find
+  reliability-gaps-implement: *implement
   research:
     codex:
       model: gpt-5.6-terra
@@ -61,13 +68,6 @@ kinds:
       model: sonnet
       effort: medium
     preamble: "-"
-  test-gaps: *ledger
-  default:
-    codex:
-      model: gpt-5.6-sol
-      reasoning: high
-    claude:
-      model: opus
-      effort: high
-    preamble: with agents and a goal
-    approval_preamble: with agents and a goal
+  test-gaps-find: *find
+  test-gaps-implement: *implement
+  default: *find
