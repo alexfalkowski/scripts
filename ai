@@ -11,6 +11,8 @@ readonly skills_dir="$script_dir/bin/skills"
 usage() {
   echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
   echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
+  echo "       ai skills [--all]" >&2
+  echo "       ai help <kind>" >&2
   exit 1
 }
 
@@ -81,65 +83,12 @@ load_kind_config() {
     exit 1
   fi
 
-  if [ "$prompt_mode" = approval ]; then
-    codex_model=$(yq eval '.kinds.go.codex.model' "$config_file")
-    codex_reasoning=$(yq eval '.kinds.go.codex.reasoning' "$config_file")
-    claude_model=$(yq eval '.kinds.go.claude.model' "$config_file")
-    claude_effort=$(yq eval '.kinds.go.claude.effort' "$config_file")
-  else
-    codex_model=$(yq eval "${base}.codex.model" "$config_file")
-    codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
-    claude_model=$(yq eval "${base}.claude.model" "$config_file")
-    claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
-  fi
-
-  preamble=$(yq eval "${base}.find_preamble // ${base}.preamble" "$config_file")
-  approval_preamble=$(yq eval "${base}.approval_preamble // ${base}.preamble" "$config_file")
+  codex_model=$(yq eval "${base}.codex.model" "$config_file")
+  codex_reasoning=$(yq eval "${base}.codex.reasoning" "$config_file")
+  claude_model=$(yq eval "${base}.claude.model" "$config_file")
+  claude_effort=$(yq eval "${base}.claude.effort" "$config_file")
+  preamble=$(yq eval "${base}.preamble" "$config_file")
   unset KIND
-}
-
-# Routes a ledger ID or compact same-prefix batch to its skill and canonical
-# Approved command.
-resolve_go_kind() {
-  if [ -n "$prompt_file" ] || [ "${#prompt_args[@]}" -ne 1 ]; then
-    echo "go requires exactly one ledger ID" >&2
-    exit 1
-  fi
-
-  ledger_id=${prompt_args[0]}
-  id_prefix=${ledger_id%%-*}
-  if [ "$id_prefix" = "$ledger_id" ] || [ -z "$id_prefix" ]; then
-    echo "invalid ledger ID: $ledger_id" >&2
-    exit 1
-  fi
-
-  entry_batch=${ledger_id#"$id_prefix"-}
-  case $entry_batch in
-  '' | /* | */ | *//* | *[!0-9/]*)
-    echo "invalid ledger ID: $ledger_id" >&2
-    exit 1
-    ;;
-  esac
-
-  go_kind=
-  for candidate_contract in "$skills_dir"/*/ledger.yaml; do
-    if [ "$(yq eval '.id_prefix' "$candidate_contract")" = "$id_prefix" ]; then
-      if [ -n "$go_kind" ]; then
-        echo "ambiguous ledger ID prefix: $id_prefix" >&2
-        exit 1
-      fi
-      go_kind=${candidate_contract%/ledger.yaml}
-      go_kind=${go_kind##*/}
-    fi
-  done
-
-  if [ -z "$go_kind" ]; then
-    echo "unknown ledger ID prefix: $id_prefix" >&2
-    exit 1
-  fi
-
-  kind=$go_kind
-  prompt_args=("Approved $ledger_id")
 }
 
 # Loads the selected skill's optional ledger contract for path resolution.
@@ -173,6 +122,95 @@ resolve_ledger() {
   else
     resolved_ledger="${scope%/}/$ledger_filename"
   fi
+}
+
+# Lists the shared skills that the current bin submodule makes available.
+list_skills() {
+  include_deprecated=
+  case ${1:-} in
+  '')
+    ;;
+  -a | --all)
+    include_deprecated=1
+    ;;
+  *)
+    usage
+    ;;
+  esac
+
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "yq is required to read shared skill metadata" >&2
+    exit 1
+  fi
+
+  printf '%-30s %s\n' SKILL DESCRIPTION
+  for skill_directory in "$skills_dir"/*; do
+    metadata_file="$skill_directory/agents/openai.yaml"
+    if [ ! -r "$metadata_file" ]; then
+      continue
+    fi
+
+    display_name=$(yq eval -r '.interface.display_name' "$metadata_file")
+    if [ -z "$include_deprecated" ] && [[ $display_name = *"(Deprecated)" ]]; then
+      continue
+    fi
+
+    short_description=$(yq eval -r '.interface.short_description' "$metadata_file")
+    skill_name=${skill_directory##*/}
+    printf '%-30s %s\n' "$skill_name" "$short_description"
+  done | sort
+
+  printf '\nRun ai help <skill> for usage, guidance, models, and ledger details.\n'
+  if [ -z "$include_deprecated" ]; then
+    printf 'Deprecated aliases are hidden; use ai skills --all to include them.\n'
+  fi
+}
+
+# Shows the current shared metadata and local launch settings for one skill.
+show_skill_help() {
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  kind=$1
+  skill_directory="$skills_dir/$kind"
+  metadata_file="$skill_directory/agents/openai.yaml"
+  if [ ! -r "$metadata_file" ]; then
+    echo "unknown skill: $kind" >&2
+    exit 1
+  fi
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "yq is required to read shared skill metadata" >&2
+    exit 1
+  fi
+
+  load_kind_config
+  display_name=$(yq eval -r '.interface.display_name' "$metadata_file")
+  short_description=$(yq eval -r '.interface.short_description' "$metadata_file")
+  default_prompt=$(yq eval -r '.interface.default_prompt' "$metadata_file")
+
+  printf '%s\n\n%s\n' "$display_name" "$short_description"
+  printf '\nUsage:\n'
+  printf '  ai codex %s -s <scope> [prompt...]\n' "$kind"
+  printf '  ai claude %s -s <scope> [prompt...]\n' "$kind"
+  printf '\nModels:\n'
+  printf '  Codex: %s (%s)\n' "$codex_model" "$codex_reasoning"
+  printf '  Claude: %s (%s)\n' "$claude_model" "$claude_effort"
+
+  ledger_kind=$kind
+  ledger_contract="$skills_dir/$ledger_kind/ledger.yaml"
+  if [ ! -r "$ledger_contract" ]; then
+    ledger_kind=$(sed -nE 's|.*\.\./([^/]+)/ledger\.yaml.*|\1|p' "$skill_directory/SKILL.md" | head -n 1)
+    ledger_contract="$skills_dir/$ledger_kind/ledger.yaml"
+  fi
+  if [ -r "$ledger_contract" ]; then
+    ledger_filename=$(yq eval -r '.ledger_filename' "$ledger_contract")
+    printf '\nLedger:\n'
+    printf '  %s (owned by %s)\n' "$ledger_filename" "$ledger_kind"
+    printf '  View: ai ledger %s -s <scope>\n' "$ledger_kind"
+  fi
+
+  printf '\nGuidance:\n  %s\n' "$default_prompt"
 }
 
 # Renders the selected skill's scoped ledger with glow.
@@ -245,7 +283,6 @@ build_prompt() {
     fi
     preamble=
   else
-    resolve_ledger
     if [ -n "$confidence" ]; then
       preamble="in $scope with >= $confidence confidence $preamble"
     else
@@ -267,11 +304,6 @@ build_prompt() {
     prompt_input=$(<"$prompt_file")
   fi
   prompt=$prompt_input
-
-  if [ "$prompt_mode" = approval ]; then
-    prompt="$prompt_input in $resolved_ledger $approval_preamble"
-    return
-  fi
 
   if [ -n "$preamble" ]; then
     prompt="${skill_prefix}${kind} ${preamble}"
@@ -310,31 +342,31 @@ cleanup_zsh_cache() {
   exit "$exit_status"
 }
 
-main() {
-  prompt_mode=standard
-
-  if [ $# -lt 1 ]; then
-    usage
-  fi
-
-  if [ "$1" = ledger ]; then
+# Handles commands that do not launch a provider session.
+handle_builtin_command() {
+  case $1 in
+  skills)
+    list_skills "${@:2}"
+    ;;
+  help)
+    show_skill_help "${@:2}"
+    ;;
+  ledger)
     if [ $# -lt 2 ]; then
       usage
     fi
     view_ledger "$2" "${@:3}"
-    return
-  fi
+    ;;
+  *)
+    return 1
+    ;;
+  esac
 
-  if [ $# -lt 2 ]; then
-    usage
-  fi
+  return 0
+}
 
-  readonly provider=$1
-  kind=$2
-  shift 2
-
-  parse_flags "$@"
-
+# Validates the provider name before selecting its launch settings.
+validate_provider() {
   case $provider in
   codex | claude)
     ;;
@@ -343,7 +375,10 @@ main() {
     exit 1
     ;;
   esac
+}
 
+# Verifies the local dependencies needed to prepare and launch a session.
+check_launch_dependencies() {
   if [ ! -r "$config_file" ]; then
     echo "unable to read configuration: $config_file" >&2
     exit 1
@@ -358,16 +393,10 @@ main() {
     echo "zsh is required to start $provider sessions" >&2
     exit 1
   fi
+}
 
-  if [ "$kind" = go ]; then
-    prompt_mode=approval
-    resolve_go_kind
-  fi
-  set -- "${prompt_args[@]}"
-
-  load_kind_config
-  load_ledger_contract
-
+# Selects the configured model, reasoning level, and skill prefix for a provider.
+select_provider_settings() {
   case $provider in
   codex)
     model=$codex_model
@@ -384,15 +413,18 @@ main() {
   if [ -n "$effort" ]; then
     reasoning=$effort
   fi
+}
 
+# Rejects incomplete provider settings before building a session command.
+validate_provider_settings() {
   if [ -z "$model" ] || [ "$model" = null ] || [ -z "$reasoning" ] || [ "$reasoning" = null ]; then
     echo "unknown kind: $kind" >&2
     exit 1
   fi
+}
 
-  build_prompt "$@"
-  build_command
-
+# Creates the isolated Zsh cache and replaces the process with the provider command.
+launch_provider_session() {
   zsh_cache_dir="$(mktemp -d "${TMPDIR:-/tmp}/ai-zsh-cache.XXXXXX")" || {
     echo "unable to create temporary Zsh cache directory" >&2
     exit 1
@@ -402,6 +434,45 @@ main() {
   export ZSH_COMPDUMP="$zsh_cache_dir/.zcompdump"
 
   zsh -lic 'exec "$@"' zsh "${command[@]}"
+}
+
+# Parses, configures, and launches a Codex or Claude session.
+run_provider_session() {
+  if [ $# -lt 2 ]; then
+    usage
+  fi
+
+  readonly provider=$1
+  kind=$2
+  shift 2
+
+  parse_flags "$@"
+
+  validate_provider
+  check_launch_dependencies
+
+  load_kind_config
+  set -- "${prompt_args[@]}"
+
+  select_provider_settings
+  validate_provider_settings
+
+  build_prompt "$@"
+  build_command
+
+  launch_provider_session
+}
+
+main() {
+  if [ $# -lt 1 ]; then
+    usage
+  fi
+
+  if handle_builtin_command "$@"; then
+    return
+  fi
+
+  run_provider_session "$@"
 }
 
 main "$@"
