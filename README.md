@@ -324,7 +324,7 @@ Syntax:
 ```bash
 ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
 ai ledger <kind> [-s <scope>] [<ledger-id>]
-ai skills [--all]
+ai skills
 ai help <kind>
 ```
 
@@ -336,7 +336,7 @@ ai claude test-gaps-find "focus on the command-line interface"
 ai codex test-gaps-find -s lib "focus on the command-line interface"
 ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
 ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
-ai codex code-issues-implement -s lib "Start ISSUE-1"
+ai codex code-issues-implement -s lib ISSUE-1
 ai ledger code-issues-implement -s lib
 ai ledger code-issues-implement -s lib ISSUE-12
 ai skills
@@ -379,9 +379,8 @@ of its own falls back to `kinds.default` as long as a matching
 override the default model, reasoning, or preamble for that skill.
 
 Use `ai skills` for a concise list of the shared skills available through the
-current `bin` submodule. The list uses each skill's shared display metadata and
-hides deprecated aliases by default; pass `--all` to include them. Use
-`ai help <kind>` for the skill's launch syntax, shared guidance, configured
+current `bin` submodule. The list uses each skill's shared display metadata.
+Use `ai help <kind>` for the skill's launch syntax, shared guidance, configured
 Codex and Claude models, and ledger ownership when applicable.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
@@ -417,10 +416,9 @@ while `ai ledger code-issues-implement -s lib ISSUE-12` renders only the
 numeric suffix.
 
 To work on an existing entry, start an implement/fix session with that explicit
-skill, such as `ai codex code-issues-implement -s lib "Start ISSUE-1"`. After
-the skill presents and you accept a solution, respond with `Approved ISSUE-1`.
-For a same-prefix batch, use `Approved ISSUE-1/2/3`. The selected skill resolves
-the ledger and owns the batch's sequential validation and stop behavior.
+skill and ledger ID, such as `ai codex code-issues-implement -s lib ISSUE-1`.
+For a same-prefix batch, use `ISSUE-1/2/3`. The selected skill resolves the
+ledger and owns the batch's sequential validation and stop behavior.
 
 ### 🚀 `create-ci`
 

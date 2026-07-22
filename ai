@@ -11,7 +11,7 @@ readonly skills_dir="$script_dir/bin/skills"
 usage() {
   echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
   echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
-  echo "       ai skills [--all]" >&2
+  echo "       ai skills" >&2
   echo "       ai help <kind>" >&2
   exit 1
 }
@@ -126,17 +126,9 @@ resolve_ledger() {
 
 # Lists the shared skills that the current bin submodule makes available.
 list_skills() {
-  include_deprecated=
-  case ${1:-} in
-  '')
-    ;;
-  -a | --all)
-    include_deprecated=1
-    ;;
-  *)
+  if [ $# -ne 0 ]; then
     usage
-    ;;
-  esac
+  fi
 
   if ! command -v yq >/dev/null 2>&1; then
     echo "yq is required to read shared skill metadata" >&2
@@ -150,20 +142,12 @@ list_skills() {
       continue
     fi
 
-    display_name=$(yq eval -r '.interface.display_name' "$metadata_file")
-    if [ -z "$include_deprecated" ] && [[ $display_name = *"(Deprecated)" ]]; then
-      continue
-    fi
-
     short_description=$(yq eval -r '.interface.short_description' "$metadata_file")
     skill_name=${skill_directory##*/}
     printf '%-30s %s\n' "$skill_name" "$short_description"
   done | sort
 
   printf '\nRun ai help <skill> for usage, guidance, models, and ledger details.\n'
-  if [ -z "$include_deprecated" ]; then
-    printf 'Deprecated aliases are hidden; use ai skills --all to include them.\n'
-  fi
 }
 
 # Shows the current shared metadata and local launch settings for one skill.
@@ -283,13 +267,13 @@ build_prompt() {
     fi
     preamble=
   else
+    scope=${scope:-.}
     if [ -n "$confidence" ]; then
       preamble="in $scope with >= $confidence confidence $preamble"
     else
       preamble="in $scope $preamble"
     fi
   fi
-  readonly scope
 
   prompt_input=$*
   if [ -n "$prompt_file" ]; then
