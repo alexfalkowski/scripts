@@ -65,9 +65,9 @@ kinds:
   default:
     codex:
       model: gpt-5.6-sol
-      reasoning: xhigh
+      reasoning: high
     claude:
       model: opus
-      effort: xhigh
+      effort: high
     preamble: with agents and a goal
     approval_preamble: with agents and a goal
