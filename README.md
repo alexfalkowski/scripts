@@ -322,7 +322,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [--] [prompt...]
+ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
 ai ledger <kind> [-s <scope>] [<ledger-id>]
 ```
 
@@ -377,10 +377,13 @@ overridden with `-s <scope>` (or the long-form alias `--scope <scope>`).
 Confidence is omitted by default, preserving the shared `>= 90%` minimum, and
 can be overridden with `-c <confidence>` (or `--confidence <confidence>`),
 such as `95%`. The configured reasoning level can be overridden for one run
-with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `--`
-before the prompt when it begins with `-s`, `--scope`, `-c`, `--confidence`,
-`-e`, `--effort`, `--reasoning`, `-f`, or `--file`. Use `-f <file>` (or
-`--file <file>`) to read a multiline
+with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `-a`
+(or `--auto`) to skip approval prompts for one run: Claude gets
+`--dangerously-skip-permissions`, and Codex gets `--ask-for-approval never`.
+Codex's sandbox stays enabled either way; only its approval prompts are
+skipped. Use `--` before the prompt when it begins with `-s`, `--scope`, `-c`,
+`--confidence`, `-e`, `--effort`, `--reasoning`, `-f`, `--file`, `-a`, or
+`--auto`. Use `-f <file>` (or `--file <file>`) to read a multiline
 prompt from a readable regular file. The file path is relative to the current
 directory, and a file prompt cannot be combined with inline prompt words. A
 `preamble: "-"` entry remains unscoped and rejects scope and confidence

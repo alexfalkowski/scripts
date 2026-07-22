@@ -9,7 +9,7 @@ readonly config_file="$script_dir/config/ai.yml"
 readonly skills_dir="$script_dir/bin/skills"
 
 usage() {
-  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [--] [prompt...]" >&2
+  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
   echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
   exit 1
 }
@@ -21,6 +21,7 @@ parse_flags() {
   confidence=
   effort=
   prompt_file=
+  auto=
   while [ $# -gt 0 ]; do
     case $1 in
     -s | --scope)
@@ -50,6 +51,10 @@ parse_flags() {
       fi
       prompt_file=$2
       shift 2
+      ;;
+    -a | --auto)
+      auto=1
+      shift
       ;;
     --)
       shift
@@ -176,7 +181,7 @@ view_ledger() {
   shift
 
   parse_flags "$@"
-  if [ -n "$confidence" ] || [ -n "$effort" ] || [ -n "$prompt_file" ] || [ "${#prompt_args[@]}" -gt 1 ]; then
+  if [ -n "$confidence" ] || [ -n "$effort" ] || [ -n "$prompt_file" ] || [ -n "$auto" ] || [ "${#prompt_args[@]}" -gt 1 ]; then
     usage
   fi
 
@@ -281,9 +286,15 @@ build_command() {
   case $provider in
   codex)
     command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
+    if [ -n "$auto" ]; then
+      command+=(--ask-for-approval never)
+    fi
     ;;
   claude)
     command=(claude --model "$model" --effort "$reasoning")
+    if [ -n "$auto" ]; then
+      command+=(--dangerously-skip-permissions)
+    fi
     ;;
   esac
 
