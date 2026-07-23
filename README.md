@@ -68,7 +68,7 @@ Additional requirements by script:
   (`gem`)
 - `update-buf-dep`: `buf`, `curl`, `jq`, `rg`, `yq`
 - `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
-- `update-docker-dep`: `awk`, GNU `sed`
+- `update-docker-dep`: `awk`, GNU `sed`, `find` (for the `all` kind)
 - `update-go-dep`: `ruby`
 - `update-root`: `awk`, `find`
 
@@ -114,8 +114,11 @@ initialize the submodule before running `make` targets in this repository.
 
 Run `make` or `make help` to print the authoritative target catalog. Prefer
 these Make targets for repeatable setup, validation, submodule, and Git workflow
-tasks. The root `Makefile` includes shared `help.mak`, `ruby.mak`, and
-`git.mak` fragments from the nested `bin` submodule.
+tasks. The root `Makefile` includes shared `help.mak`, `ruby.mak`, `git.mak`,
+`claude.mak`, and `codex.mak` fragments from the nested `bin` submodule.
+`claude.mak` and `codex.mak` add the `claude-init` and `codex-init` targets
+that symlink the shared `bin/skills` and permission profiles into this
+repository for each assistant.
 
 For local CI parity, run the same checks as the CircleCI lint job:
 
@@ -372,11 +375,12 @@ kinds:
 
 Use the explicit `*-find` / `*-implement` names for code, feature, project,
 reliability, and test gaps; use `doc-gaps-audit` / `doc-gaps-fix` for
-documentation. `code` has no injected preamble (`preamble: "-"`) and is not a
-`bin` skill, so it always needs its own entry. Any other kind that has no entry
-of its own falls back to `kinds.default` as long as a matching
-`bin/skills/<kind>` directory exists. Add a kind-specific entry only to
-override the default model, reasoning, or preamble for that skill.
+documentation. `code`, `research`, and `question` have no injected preamble
+(`preamble: "-"`) and are not `bin` skills, so each always needs its own
+`kinds` entry. Any other kind that has no entry of its own falls back to
+`kinds.default` as long as a matching `bin/skills/<kind>` directory exists.
+Add a kind-specific entry only to override the default model, reasoning, or
+preamble for that skill.
 
 Use `ai skills` for a concise list of the shared skills available through the
 current `bin` submodule. The list uses each skill's shared display metadata.
@@ -877,6 +881,7 @@ Behavior:
 - Uses a major image version bump when the root major version changes.
 - Uses a minor image version bump otherwise.
 - Exits with an error if no matching Dockerfiles are found.
+- Exits with an error if a matching image `Makefile` has no `VERSION`.
 - Exits with an error if every matching Dockerfile is already on `<version>`.
 - Finalizes once with `make msg="updated root to <version>" ready`.
 
