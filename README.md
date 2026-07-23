@@ -56,8 +56,8 @@ Base requirements:
 
 Additional requirements by script:
 
-- `ai`: `yq`, `zsh`, plus Codex CLI (`codex`) and/or Claude Code (`claude`), depending
-  on the selected provider
+- `ai`: `yq`, `zsh`, and `glow` (for `ai ledger`), plus Codex CLI (`codex`)
+  and/or Claude Code (`claude`), depending on the selected provider
 - `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
 - `load`: `vegeta`, `ghz`
@@ -66,7 +66,7 @@ Additional requirements by script:
 - `rotate-oauth-ci`: `curl`, `jq`
 - `update-bundler` and the `update-ruby ... bundler` action: `ruby`, RubyGems
   (`gem`)
-- `update-buf-dep`: `buf`, `curl`, `jq`, `yq`
+- `update-buf-dep`: `buf`, `curl`, `jq`, `rg`, `yq`
 - `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
 - `update-docker-dep`: `awk`, GNU `sed`
 - `update-go-dep`: `ruby`
@@ -355,10 +355,10 @@ kinds:
   test-gaps-find:
     codex:
       model: gpt-5.6-sol
-      reasoning: max
+      reasoning: high
     claude:
       model: opus
-      effort: xhigh
+      effort: high
     preamble: with agents and a goal
   test-gaps-implement:
     codex:
