@@ -175,8 +175,17 @@ show_skill_help() {
 
   printf '%s\n\n%s\n' "$display_name" "$short_description"
   printf '\nUsage:\n'
-  printf '  ai codex %s -s <scope> [prompt...]\n' "$kind"
-  printf '  ai claude %s -s <scope> [prompt...]\n' "$kind"
+  printf '  ai codex %s [options] [--] [prompt...]\n' "$kind"
+  printf '  ai claude %s [options] [--] [prompt...]\n' "$kind"
+  printf '\nOptions:\n'
+  printf '  -s, --scope <scope>             Scope (defaults to .)\n'
+  printf '  -c, --confidence <confidence>   Confidence target\n'
+  printf '  -e, --effort, --reasoning <effort>  Override reasoning level\n'
+  printf '  -f, --file <file>               Read the prompt from a file\n'
+  printf '  -a, --auto                      Skip provider approval prompts\n'
+  printf '  --                              Treat remaining arguments as prompt text\n'
+  printf '\nConstraints:\n'
+  printf '  A prompt file cannot be combined with inline prompt text.\n'
   printf '\nModels:\n'
   printf '  Codex: %s (%s)\n' "$codex_model" "$codex_reasoning"
   printf '  Claude: %s (%s)\n' "$claude_model" "$claude_effort"
