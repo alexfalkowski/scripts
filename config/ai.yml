@@ -44,6 +44,14 @@ kinds:
   project-gaps-implement: *implement
   reliability-gaps-find: *find
   reliability-gaps-implement: *implement
+  repo-health:
+    codex:
+      model: gpt-5.6-luna
+      reasoning: medium
+    claude:
+      model: sonnet
+      effort: medium
+    preamble: with agents and a goal
   research:
     codex:
       model: gpt-5.6-sol
