@@ -10,6 +10,7 @@ readonly skills_dir="$script_dir/bin/skills"
 
 usage() {
   echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
+  echo "       ai <codex|claude> version" >&2
   echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
   echo "       ai skills" >&2
   echo "       ai help <kind>" >&2
@@ -438,6 +439,14 @@ run_provider_session() {
   readonly provider=$1
   kind=$2
   shift 2
+
+  if [ "$kind" = version ]; then
+    validate_provider
+    if [ $# -ne 0 ]; then
+      usage
+    fi
+    exec "$provider" --version
+  fi
 
   parse_flags "$@"
 
