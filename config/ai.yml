@@ -13,7 +13,7 @@ profiles:
       model: gpt-5.6-terra
       reasoning: high
     claude:
-      model: sonnet
+      model: claude-sonnet-5
       effort: high
     preamble: "-"
   find: &find
@@ -21,7 +21,7 @@ profiles:
       model: gpt-5.6-sol
       reasoning: high
     claude:
-      model: opus
+      model: claude-opus-4-8
       effort: high
     preamble: with agents and a goal
   implement: &implement
@@ -29,7 +29,7 @@ profiles:
       model: gpt-5.6-terra
       reasoning: high
     claude:
-      model: sonnet
+      model: claude-sonnet-5
       effort: high
     preamble: with agents and a goal
 kinds:
@@ -49,7 +49,7 @@ kinds:
       model: gpt-5.6-luna
       reasoning: medium
     claude:
-      model: sonnet
+      model: claude-sonnet-5
       effort: medium
     preamble: with agents and a goal
   research:
@@ -57,7 +57,7 @@ kinds:
       model: gpt-5.6-sol
       reasoning: xhigh
     claude:
-      model: opus
+      model: claude-opus-4-8
       effort: xhigh
     preamble: "-"
   review-pr:
@@ -65,7 +65,7 @@ kinds:
       model: gpt-5.6-terra
       reasoning: high
     claude:
-      model: sonnet
+      model: claude-sonnet-5
       effort: high
     preamble: with agents and a goal
   question:
@@ -73,7 +73,7 @@ kinds:
       model: gpt-5.6-luna
       reasoning: medium
     claude:
-      model: sonnet
+      model: claude-sonnet-5
       effort: medium
     preamble: "-"
   test-gaps-find: *find
