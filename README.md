@@ -326,6 +326,7 @@ Syntax:
 
 ```bash
 ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
+ai <codex|claude> version
 ai ledger <kind> [-s <scope>] [<ledger-id>]
 ai skills
 ai help <kind>
@@ -346,6 +347,8 @@ ai skills
 ai help doc-gaps-fix
 ai codex code --file prompts/cache.md
 ai codex code -- "-s this is a literal prompt"
+ai codex version
+ai claude version
 ```
 
 The model, reasoning level, and prompt preamble are configured in
@@ -386,6 +389,8 @@ Use `ai skills` for a concise list of the shared skills available through the
 current `bin` submodule. The list uses each skill's shared display metadata.
 Use `ai help <kind>` for the skill's launch syntax, shared guidance, configured
 Codex and Claude models, and ledger ownership when applicable.
+Use `ai <codex|claude> version` to print the selected provider CLI's own
+version, bypassing kind configuration and skill invocation.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
 Claude, followed by `in <scope>`, an optional `with >= <confidence> confidence`,
