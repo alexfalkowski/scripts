@@ -29,6 +29,9 @@ new version.
   `done`, `latest`, `purge`, `ready`, or `new-*`.
 - Avoid changing script names or argument order unless the task explicitly
   requires it.
+- Place `# shellcheck` directives immediately after `#!/usr/bin/env bash`.
+  Preserve inline Bash `readonly` assignments; when ShellCheck reports `SC2155`,
+  add a suppression rather than splitting declaration and assignment.
 
 ## Known Gotchas
 

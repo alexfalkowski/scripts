@@ -29,7 +29,7 @@ Commands:
 - `afctl ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
 - `afctl clean`: remove dependency vendor directories and rerun `make dep`.
 - `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
-- `afctl deps`: install/update shared Go developer tools.
+- `afctl deps`: install the managed Homebrew prerequisites and update shared Go developer tools.
 - `afctl help` (also `afctl -h` or `afctl --help`): list the executable commands available in this checkout.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
 - `afctl lsp`: run Ruby LSP after `make dep`.
@@ -51,31 +51,27 @@ Commands:
 
 ## ✅ Prerequisites
 
-Base requirements:
+On macOS or Linux with [Homebrew](https://brew.sh/), install the managed
+command-line prerequisites and pinned Go developer tools:
 
-- `bash`
-- `git`
-- `make`
+```bash
+./afctl deps
+```
 
-Additional requirements by command:
+`afctl deps` reads the repository's [`Brewfile`](Brewfile). It includes both
+optional AI provider CLIs; remove the `codex` or `claude-code@latest` cask
+entry before running the command if you use only one.
 
-- `afctl ai <codex|claude> <kind>`: `yq`, `zsh`, and the selected provider CLI
-  (`codex` or `claude`)
-- `afctl ai skills` and `afctl ai help`: `yq`
-- `afctl ai ledger`: `yq`, `glow`
-- `afctl create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
-- `afctl deps`: `go`
-- `afctl load`: `vegeta`, `ghz`
-- `afctl lsp`: `ruby`, `bundler`
-- `afctl rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
-- `afctl rotate-oauth-ci`: `curl`, `jq`
-- `afctl update-bundler` and the `afctl update-ruby ... bundler` action: `ruby`, RubyGems
-  (`gem`)
-- `afctl update-buf-dep`: `buf`, `curl`, `jq`, `rg`, `yq`
-- `afctl update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
-- `afctl update-docker-dep`: `awk`, GNU `sed`, `find`, `sort` (for the `all` kind)
-- `afctl update-go-dep`: `ruby`
-- `afctl update-root`: `awk`, `find`, `sort`
+For the GNU `sed` and `sort` behavior used by `update-ci` and
+`update-docker-dep`, put Homebrew's GNU tool directories before the system
+tools on `PATH` (for example, in `~/.zshrc`):
+
+```bash
+export PATH="$(brew --prefix coreutils)/libexec/gnubin:$(brew --prefix gnu-sed)/libexec/gnubin:$PATH"
+```
+
+Ruby dependencies remain managed by the existing `Gemfile`; run `make dep`
+after installing the Brewfile prerequisites.
 
 > [!IMPORTANT]
 > Bulk commands (`afctl update`, `afctl update-buf`, `afctl update-service`, `afctl update-ruby`, and `afctl rotate-ci`) invoke their helpers by command name after changing directories or iterating configured slugs. `afctl` adds `libexec/` to `PATH` for those invocations.
@@ -461,14 +457,14 @@ Behavior:
 
 ### 🛠️ `afctl deps`
 
-Install pinned Go tools:
+Install the Brewfile prerequisites and pinned Go tools:
 
 ```bash
 afctl deps
 ```
 
-Current tool list, including pinned versions, is defined directly in
-[`libexec/deps`](libexec/deps).
+Homebrew dependencies are defined in [`Brewfile`](Brewfile); pinned Go tools
+are defined directly in [`libexec/deps`](libexec/deps).
 
 ### 📈 `afctl load`
 
