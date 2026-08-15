@@ -18,9 +18,21 @@ EOF
     [ -x "$subcommand_path" ] || continue
     printf '  %s\n' "${subcommand_path##*/}" >&2
   done
+  printf '  completion\n' >&2
 
   printf '\nSee %s/README.md for command details.\n' "$script_dir" >&2
   exit "${1:-1}"
+}
+
+# Prints the zsh completion script with this checkout's absolute path embedded.
+completion() {
+  if [ "$#" -ne 1 ] || [ "$1" != zsh ]; then
+    echo "usage: afctl completion zsh" >&2
+    return 1
+  fi
+
+  printf 'typeset -g _afctl_completion_dir=%q\n' "$script_dir"
+  cat "$script_dir/completions/afctl.sh"
 }
 
 readonly command="${1:-}"
@@ -28,6 +40,11 @@ readonly command="${1:-}"
 case "$command" in
 '' | help | -h | --help)
   usage 0
+  ;;
+completion)
+  shift
+  completion "$@"
+  exit 0
   ;;
 *[!a-z0-9-]*)
   printf 'unknown command: %s\n' "$command" >&2

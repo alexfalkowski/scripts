@@ -28,9 +28,10 @@ Commands:
 
 - `afctl ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
 - `afctl clean`: remove dependency vendor directories and rerun `make dep`.
+- `afctl completion zsh`: print the zsh completion script for sourcing from shell startup.
 - `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
 - `afctl deps`: install the managed Homebrew prerequisites and update shared Go developer tools.
-- `afctl help` (also `afctl -h` or `afctl --help`): list the executable commands available in this checkout.
+- `afctl help` (also `afctl -h` or `afctl --help`): list the commands available in this checkout.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
 - `afctl lsp`: run Ruby LSP after `make dep`.
 - `afctl rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
@@ -101,6 +102,15 @@ Example (`zsh`/`bash`):
 ```bash
 export PATH="/path/to/this/repo:$PATH"
 ```
+
+For zsh completion, add this to `~/.zshrc`:
+
+```zsh
+source <(afctl completion zsh)
+```
+
+The generated script initializes `compinit` itself when needed and discovers the
+available `afctl` commands from executable files in `libexec/`.
 
 > [!TIP]
 > From a shell already inside this repository, `export PATH="$(pwd):$PATH"` is
@@ -437,6 +447,17 @@ To work on an existing entry, start an implement/fix session with that explicit
 skill and ledger ID, such as `afctl ai codex code-issues-implement -s lib ISSUE-1`.
 For a same-prefix batch, use `ISSUE-1/2/3`. The selected skill resolves the
 ledger and owns the batch's sequential validation and stop behavior.
+
+### ⌨️ `afctl completion`
+
+Print a completion script for a supported shell.
+
+```zsh
+source <(afctl completion zsh)
+```
+
+The generated zsh completion discovers the executable `libexec` commands in
+the current `afctl` checkout and completes documented argument values.
 
 ### 🚀 `afctl create-ci`
 
