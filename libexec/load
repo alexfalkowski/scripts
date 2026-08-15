@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2155
 
 set -eo pipefail
 
@@ -7,12 +7,13 @@ set -eo pipefail
 # - ~/code/standort/standort server -i file:config/standort.yml
 # - ~/code/bezeichner/bezeichner server -i file:config/bezeichner.yml
 
-source "$(dirname "$0")"/lib/dirs.sh
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/dirs.sh"
 readonly kind=$1
 readonly service=$2
 
 usage() {
-  echo "usage: load <http|grpc> <standort|bezeichner>" >&2
+  echo "usage: afctl load <http|grpc> <standort|bezeichner>" >&2
   exit 1
 }
 

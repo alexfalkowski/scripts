@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2155
+
+# Dispatches afctl subcommands to their implementations in libexec.
+set -eo pipefail
+
+readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly libexec_dir="$script_dir/libexec"
+
+usage() {
+  cat >&2 <<'EOF'
+usage: afctl <command> [args...]
+
+Commands:
+EOF
+
+  for subcommand_path in "$libexec_dir"/*; do
+    [ -x "$subcommand_path" ] || continue
+    printf '  %s\n' "${subcommand_path##*/}" >&2
+  done
+
+  printf '\nSee %s/README.md for command details.\n' "$script_dir" >&2
+  exit "${1:-1}"
+}
+
+readonly command="${1:-}"
+
+case "$command" in
+'' | help | -h | --help)
+  usage 0
+  ;;
+*[!a-z0-9-]*)
+  printf 'unknown command: %s\n' "$command" >&2
+  usage
+  ;;
+esac
+
+readonly command_path="$libexec_dir/$command"
+
+if [ ! -x "$command_path" ]; then
+  printf 'unknown command: %s\n' "$command" >&2
+  usage
+fi
+
+shift
+PATH="$libexec_dir:$PATH" exec "$command_path" "$@"

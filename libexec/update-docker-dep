@@ -5,10 +5,11 @@
 
 set -eo pipefail
 
-source "$(dirname "$0")"/lib/version.sh
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/version.sh"
 
 usage() {
-  echo "usage: update-docker-dep <kind|all> <package> <version>" >&2
+  echo "usage: afctl update-docker-dep <kind|all> <package> <version>" >&2
   exit 1
 }
 

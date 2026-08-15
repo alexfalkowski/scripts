@@ -4,16 +4,16 @@
 set -eo pipefail
 
 # Starts an interactive Codex or Claude session using the selected kind's configuration.
-readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-readonly config_file="$script_dir/config/ai.yml"
-readonly skills_dir="$script_dir/bin/skills"
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly config_file="$root_dir/config/ai.yml"
+readonly skills_dir="$root_dir/bin/skills"
 
 usage() {
-  echo "usage: ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
-  echo "       ai <codex|claude> version" >&2
-  echo "       ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
-  echo "       ai skills" >&2
-  echo "       ai help <kind>" >&2
+  echo "usage: afctl ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]" >&2
+  echo "       afctl ai <codex|claude> version" >&2
+  echo "       afctl ai ledger <kind> [-s <scope>] [<ledger-id>]" >&2
+  echo "       afctl ai skills" >&2
+  echo "       afctl ai help <kind>" >&2
   exit 1
 }
 
@@ -148,7 +148,7 @@ list_skills() {
     printf '%-30s %s\n' "$skill_name" "$short_description"
   done | sort
 
-  printf '\nRun ai help <skill> for usage, guidance, models, and ledger details.\n'
+  printf '\nRun afctl ai help <skill> for usage, guidance, models, and ledger details.\n'
 }
 
 # Shows the current shared metadata and local launch settings for one skill.
@@ -176,8 +176,8 @@ show_skill_help() {
 
   printf '%s\n\n%s\n' "$display_name" "$short_description"
   printf '\nUsage:\n'
-  printf '  ai codex %s [options] [--] [prompt...]\n' "$kind"
-  printf '  ai claude %s [options] [--] [prompt...]\n' "$kind"
+  printf '  afctl ai codex %s [options] [--] [prompt...]\n' "$kind"
+  printf '  afctl ai claude %s [options] [--] [prompt...]\n' "$kind"
   printf '\nOptions:\n'
   printf '  -s, --scope <scope>             Scope (defaults to .)\n'
   printf '  -c, --confidence <confidence>   Confidence target\n'
@@ -201,7 +201,7 @@ show_skill_help() {
     ledger_filename=$(yq eval -r '.ledger_filename' "$ledger_contract")
     printf '\nLedger:\n'
     printf '  %s (owned by %s)\n' "$ledger_filename" "$ledger_kind"
-    printf '  View: ai ledger %s -s <scope>\n' "$ledger_kind"
+    printf '  View: afctl ai ledger %s -s <scope>\n' "$ledger_kind"
   fi
 
   printf '\nGuidance:\n  %s\n' "$default_prompt"

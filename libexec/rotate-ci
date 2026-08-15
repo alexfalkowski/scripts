@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
+
+set -eo pipefail
+
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/slugs.sh"
+
+for slug in "${slugs[@]}"; do
+  rotate-oauth-ci "$CIRCLECI_API_TOKEN" "$slug"
+done
