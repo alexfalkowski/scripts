@@ -26,27 +26,28 @@ Run commands through `afctl`; their implementations live in `libexec/`.
 
 Commands:
 
-- `ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
-- `clean`: remove dependency vendor directories and rerun `make dep`.
-- `create-ci`: create/configure a CircleCI project and trigger its first pipeline.
-- `deps`: install/update shared Go developer tools.
-- `load`: run local HTTP/gRPC load tests for specific services.
-- `lsp`: run Ruby LSP after `make dep`.
-- `rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
-- `rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
-- `update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
-- `update-buf`: run Buf-related bulk actions over configured repository sets.
-- `update-buf-dep`: update pinned Buf remote plugins and regenerate outputs.
-- `update-bundler`: install a Bundler version and run follow-up make targets.
-- `update-ci`: update CircleCI image tags to latest published Docker Hub tags.
-- `update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
-- `update-go-dep`: update outdated Go dependencies using make targets.
-- `update-root`: bump `alexfalkowski/root` in the local `alexfalkowski/docker` repo.
-- `update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
-- `update-ruby-dep`: update Ruby dependencies using make targets.
-- `update-service`: run service-specific bulk actions over the `services` set only.
-- `update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
-- `update-submodule`: update this repo as a submodule in a target repo.
+- `afctl ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
+- `afctl clean`: remove dependency vendor directories and rerun `make dep`.
+- `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
+- `afctl deps`: install/update shared Go developer tools.
+- `afctl help` (also `afctl -h` or `afctl --help`): list the executable commands available in this checkout.
+- `afctl load`: run local HTTP/gRPC load tests for specific services.
+- `afctl lsp`: run Ruby LSP after `make dep`.
+- `afctl rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
+- `afctl rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
+- `afctl update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
+- `afctl update-buf`: run Buf-related bulk actions over configured repository sets.
+- `afctl update-buf-dep`: update pinned Buf remote plugins and regenerate outputs.
+- `afctl update-bundler`: install a Bundler version and run follow-up make targets.
+- `afctl update-ci`: update CircleCI image tags to latest published Docker Hub tags.
+- `afctl update-docker-dep`: bump a package in the local `alexfalkowski/docker` repo.
+- `afctl update-go-dep`: update outdated Go dependencies using make targets.
+- `afctl update-root`: bump `alexfalkowski/root` in the local `alexfalkowski/docker` repo.
+- `afctl update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
+- `afctl update-ruby-dep`: update Ruby dependencies using make targets.
+- `afctl update-service`: run service-specific bulk actions over the `services` set only.
+- `afctl update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
+- `afctl update-submodule`: update this repo as a submodule in a target repo.
 
 ## ✅ Prerequisites
 
@@ -58,21 +59,23 @@ Base requirements:
 
 Additional requirements by command:
 
-- `afctl ai`: `yq`, `zsh`, and `glow` (for `afctl ai ledger`), plus Codex CLI (`codex`)
-  and/or Claude Code (`claude`), depending on the selected provider
-- `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
-- `deps`: `go`
-- `load`: `vegeta`, `ghz`
-- `lsp`: `ruby`, `bundler`
-- `rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
-- `rotate-oauth-ci`: `curl`, `jq`
-- `update-bundler` and the `update-ruby ... bundler` action: `ruby`, RubyGems
+- `afctl ai <codex|claude> <kind>`: `yq`, `zsh`, and the selected provider CLI
+  (`codex` or `claude`)
+- `afctl ai skills` and `afctl ai help`: `yq`
+- `afctl ai ledger`: `yq`, `glow`
+- `afctl create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
+- `afctl deps`: `go`
+- `afctl load`: `vegeta`, `ghz`
+- `afctl lsp`: `ruby`, `bundler`
+- `afctl rotate-ci`: `curl`, `jq`, `CIRCLECI_API_TOKEN`
+- `afctl rotate-oauth-ci`: `curl`, `jq`
+- `afctl update-bundler` and the `afctl update-ruby ... bundler` action: `ruby`, RubyGems
   (`gem`)
-- `update-buf-dep`: `buf`, `curl`, `jq`, `rg`, `yq`
-- `update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
-- `update-docker-dep`: `awk`, GNU `sed`, `find` (for the `all` kind)
-- `update-go-dep`: `ruby`
-- `update-root`: `awk`, `find`
+- `afctl update-buf-dep`: `buf`, `curl`, `jq`, `rg`, `yq`
+- `afctl update-ci`: `curl`, `jq`, GNU `sed`, GNU `sort`
+- `afctl update-docker-dep`: `awk`, GNU `sed`, `find`, `sort` (for the `all` kind)
+- `afctl update-go-dep`: `ruby`
+- `afctl update-root`: `awk`, `find`, `sort`
 
 > [!IMPORTANT]
 > Bulk commands (`afctl update`, `afctl update-buf`, `afctl update-service`, `afctl update-ruby`, and `afctl rotate-ci`) invoke their helpers by command name after changing directories or iterating configured slugs. `afctl` adds `libexec/` to `PATH` for those invocations.
@@ -109,6 +112,16 @@ export PATH="/path/to/this/repo:$PATH"
 
 The root `Makefile` includes shared make fragments from the `bin` submodule, so
 initialize the submodule before running `make` targets in this repository.
+
+Verify the command dispatcher before running a maintenance action:
+
+```bash
+afctl help
+```
+
+If you have not added the repository to `PATH`, run the same command from the
+repository root as `./afctl help`. The list is generated from executable files
+in `libexec/`, so it is the authoritative command catalog for this checkout.
 
 ## 🧪 Make targets and validation
 
@@ -353,8 +366,8 @@ afctl ai claude version
 
 The model, reasoning level, and prompt preamble are configured in
 [`config/ai.yml`](config/ai.yml), read with `yq`. Find/audit and
-implement/fix skills have separate model profiles. Entries under `kinds` look
-like this:
+implement/fix skills have separate model profiles. The current find and
+implement entries under `kinds` look like this:
 
 ```yaml
 kinds:
@@ -363,7 +376,7 @@ kinds:
       model: gpt-5.6-sol
       reasoning: high
     claude:
-      model: opus
+      model: eu.anthropic.claude-opus-5
       effort: high
     preamble: with agents and a goal
   test-gaps-implement:
@@ -371,7 +384,7 @@ kinds:
       model: gpt-5.6-terra
       reasoning: high
     claude:
-      model: sonnet
+      model: eu.anthropic.claude-sonnet-5
       effort: high
     preamble: with agents and a goal
 ```
@@ -454,7 +467,8 @@ Install pinned Go tools:
 afctl deps
 ```
 
-Current tool list is defined directly in [`afctl deps`](afctl).
+Current tool list, including pinned versions, is defined directly in
+[`libexec/deps`](libexec/deps).
 
 ### 📈 `afctl load`
 
