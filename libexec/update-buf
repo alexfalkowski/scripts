@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1010,SC1091,SC2154
+# shellcheck disable=SC1010,SC1091,SC2154,SC2155
 
 # Runs Buf dependency updates across configured repository sets.
 set -eo pipefail
 
-source "$(dirname "$0")"/lib/dirs.sh
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/dirs.sh"
 readonly dirs=$1
 readonly action=$2
 

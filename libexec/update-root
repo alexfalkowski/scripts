@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2155
 
 # Update alexfalkowski/root across the local docker image repository.
 
 set -eo pipefail
 
-source "$(dirname "$0")"/lib/version.sh
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/version.sh"
 
 readonly dir="$HOME/code/docker"
 readonly image="alexfalkowski/root"
 readonly version=$1
 
 if [ -z "$version" ]; then
-  echo "usage: update-root <version>" >&2
+  echo "usage: afctl update-root <version>" >&2
   exit 1
 fi
 

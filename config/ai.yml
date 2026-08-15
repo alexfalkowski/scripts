@@ -1,4 +1,4 @@
-# Read by `ai`. Each kind configures the Codex and Claude model/reasoning
+# Read by `afctl ai`. Each kind configures the Codex and Claude model/reasoning
 # level plus its prompt preamble. Find/audit and implement/fix skills use
 # separate profiles so their model choices remain explicit.
 #
@@ -6,7 +6,7 @@
 #
 # `default` configures any kind that has no entry of its own here but matches
 # a skill directory under bin/skills/<kind>, so new shared skills work with
-# `ai` without editing this file.
+# `afctl ai` without editing this file.
 profiles:
   code: &code
     codex:

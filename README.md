@@ -16,13 +16,15 @@ Utility scripts for running repeatable maintenance across multiple repositories
 - [Directory sets used by bulk scripts](#directory-sets-used-by-bulk-scripts)
 - [Workflow side effects](#workflow-side-effects)
 - [Common workflows](#common-workflows)
-- [Script reference](#script-reference)
+- [Command reference](#command-reference)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
 ## 📦 What this repo contains
 
-Top-level scripts:
+Run commands through `afctl`; their implementations live in `libexec/`.
+
+Commands:
 
 - `ai`: start Codex or Claude with a kind-specific model, reasoning level, and prompt preamble.
 - `clean`: remove dependency vendor directories and rerun `make dep`.
@@ -54,9 +56,9 @@ Base requirements:
 - `git`
 - `make`
 
-Additional requirements by script:
+Additional requirements by command:
 
-- `ai`: `yq`, `zsh`, and `glow` (for `ai ledger`), plus Codex CLI (`codex`)
+- `afctl ai`: `yq`, `zsh`, and `glow` (for `afctl ai ledger`), plus Codex CLI (`codex`)
   and/or Claude Code (`claude`), depending on the selected provider
 - `create-ci`: `curl`, `CIRCLECI_API_TOKEN`, `CODECOV_TOKEN`
 - `deps`: `go`
@@ -73,9 +75,7 @@ Additional requirements by script:
 - `update-root`: `awk`, `find`
 
 > [!IMPORTANT]
-> Bulk scripts (`update`, `update-buf`, `update-service`, `update-ruby`, and `rotate-ci`) call
-> other scripts by command name after changing directories or iterating configured
-> slugs. Add this repository to `PATH` so those commands resolve correctly.
+> Bulk commands (`afctl update`, `afctl update-buf`, `afctl update-service`, `afctl update-ruby`, and `afctl rotate-ci`) invoke their helpers by command name after changing directories or iterating configured slugs. `afctl` adds `libexec/` to `PATH` for those invocations.
 
 Many scripts assume target repositories provide specific `make` targets, such as
 `dep`, `latest`, `purge`, `ready`, `done`, or `new-*`.
@@ -95,7 +95,7 @@ Many scripts assume target repositories provide specific `make` targets, such as
    access or a local Git URL override.
 
 2. Install the prerequisites for the scripts you plan to run.
-3. Add this repository to `PATH`.
+3. Add this repository to `PATH` so `afctl` is available.
 
 Example (`zsh`/`bash`):
 
@@ -105,7 +105,7 @@ export PATH="/path/to/this/repo:$PATH"
 
 > [!TIP]
 > From a shell already inside this repository, `export PATH="$(pwd):$PATH"` is
-> the shortest way to make the helper scripts available to bulk workflows.
+> the shortest way to make `afctl` available.
 
 The root `Makefile` includes shared make fragments from the `bin` submodule, so
 initialize the submodule before running `make` targets in this repository.
@@ -174,9 +174,9 @@ branches run `make sync push`; `master` runs `version` and `package` with the
 ### 🗓️ Weekly dependency maintenance (all repos)
 
 ```bash
-./deps
-./update all dep
-./update all done
+afctl deps
+afctl update all dep
+afctl update all done
 ```
 
 Use this when you want a broad dependency refresh across your configured `ruby`,
@@ -185,8 +185,8 @@ Use this when you want a broad dependency refresh across your configured `ruby`,
 ### 🧹 Reinstall dependencies in all configured repos
 
 ```bash
-./update all clean
-./update all done
+afctl update all clean
+afctl update all done
 ```
 
 > [!CAUTION]
@@ -196,8 +196,8 @@ Use this when you want a broad dependency refresh across your configured `ruby`,
 ### 🏗️ Refresh CircleCI images in service repos
 
 ```bash
-./update services ci
-./update services done
+afctl update services ci
+afctl update services done
 ```
 
 This updates `alexfalkowski/*` image tags in service repo CircleCI configs, then
@@ -211,8 +211,8 @@ runs each repo's `make done`.
 ### 🧩 Bump `go-service` dependency in all services
 
 ```bash
-./update-service new svc v2.3.4
-./update-service done
+afctl update-service new svc v2.3.4
+afctl update-service done
 ```
 
 Replace `v2.3.4` as needed.
@@ -220,8 +220,8 @@ Replace `v2.3.4` as needed.
 ### 📌 Bump `bin` submodule across all configured repos
 
 ```bash
-./update all submodule svc "bump bin submodule"
-./update all done
+afctl update all submodule svc "bump bin submodule"
+afctl update all done
 ```
 
 This runs submodule updates in each configured repo and finalizes with
@@ -230,8 +230,8 @@ This runs submodule updates in each configured repo and finalizes with
 ### 💎 Upgrade Bundler in Ruby and service repos
 
 ```bash
-./update-ruby all bundler <version> "upgrade bundler"
-./update-ruby all done
+afctl update-ruby all bundler <version> "upgrade bundler"
+afctl update-ruby all done
 ```
 
 Replace `<version>` with the Bundler version you intend to roll out.
@@ -239,8 +239,8 @@ Replace `<version>` with the Bundler version you intend to roll out.
 ### 🧬 Update Buf remote plugins
 
 ```bash
-./update-buf all new svc "update Buf dependencies"
-./update-buf all done
+afctl update-buf all new svc "update Buf dependencies"
+afctl update-buf all done
 ```
 
 This only updates repositories with a Buf-enabled Makefile and pinned remote
@@ -251,7 +251,7 @@ plugins in `buf.gen.yaml`.
 Run this from inside the target repo:
 
 ```bash
-update-bundler <version> "upgrade bundler"
+afctl update-bundler <version> "upgrade bundler"
 make done
 ```
 
@@ -260,7 +260,7 @@ Replace `<version>` with the Bundler version you intend to roll out.
 ### 🔐 Create a CircleCI project
 
 ```bash
-create-ci my-repo-name
+afctl create-ci my-repo-name
 ```
 
 > [!WARNING]
@@ -270,8 +270,8 @@ create-ci my-repo-name
 ### 🔄 Rotate CircleCI GitHub OAuth triggers
 
 ```bash
-DRY_RUN=1 rotate-ci
-rotate-ci
+DRY_RUN=1 afctl rotate-ci
+afctl rotate-ci
 ```
 
 Use `DRY_RUN=1` first to print the DELETE/POST requests without changing
@@ -293,23 +293,23 @@ Start the services first:
 Then run the load tests:
 
 ```bash
-./load http standort
-./load grpc standort
-./load http bezeichner
-./load grpc bezeichner
+afctl load http standort
+afctl load grpc standort
+afctl load http bezeichner
+afctl load grpc bezeichner
 ```
 
 Run these only after local services are listening on the ports defined in
-[`load`](load).
+[`afctl load`](afctl).
 
-## 📚 Script reference
+## 📚 Command reference
 
-### 🧹 `clean`
+### 🧹 `afctl clean`
 
 Run inside a target repository:
 
 ```bash
-clean
+afctl clean
 ```
 
 Behavior:
@@ -318,37 +318,37 @@ Behavior:
 - Removes `vendor` when it exists.
 - Runs `make dep`.
 
-### 🤖 `ai`
+### 🤖 `afctl ai`
 
 Start an interactive Codex or Claude session for a configured kind.
 
 Syntax:
 
 ```bash
-ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
-ai <codex|claude> version
-ai ledger <kind> [-s <scope>] [<ledger-id>]
-ai skills
-ai help <kind>
+afctl ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
+afctl ai <codex|claude> version
+afctl ai ledger <kind> [-s <scope>] [<ledger-id>]
+afctl ai skills
+afctl ai help <kind>
 ```
 
 Examples:
 
 ```bash
-ai codex code "add a cache for this request"
-ai claude test-gaps-find "focus on the command-line interface"
-ai codex test-gaps-find -s lib "focus on the command-line interface"
-ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
-ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
-ai codex code-issues-implement -s lib ISSUE-1
-ai ledger code-issues-implement -s lib
-ai ledger code-issues-implement -s lib ISSUE-12
-ai skills
-ai help doc-gaps-fix
-ai codex code --file prompts/cache.md
-ai codex code -- "-s this is a literal prompt"
-ai codex version
-ai claude version
+afctl ai codex code "add a cache for this request"
+afctl ai claude test-gaps-find "focus on the command-line interface"
+afctl ai codex test-gaps-find -s lib "focus on the command-line interface"
+afctl ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
+afctl ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
+afctl ai codex code-issues-implement -s lib ISSUE-1
+afctl ai ledger code-issues-implement -s lib
+afctl ai ledger code-issues-implement -s lib ISSUE-12
+afctl ai skills
+afctl ai help doc-gaps-fix
+afctl ai codex code --file prompts/cache.md
+afctl ai codex code -- "-s this is a literal prompt"
+afctl ai codex version
+afctl ai claude version
 ```
 
 The model, reasoning level, and prompt preamble are configured in
@@ -385,11 +385,11 @@ documentation. `code`, `research`, and `question` have no injected preamble
 Add a kind-specific entry only to override the default model, reasoning, or
 preamble for that skill.
 
-Use `ai skills` for a concise list of the shared skills available through the
+Use `afctl ai skills` for a concise list of the shared skills available through the
 current `bin` submodule. The list uses each skill's shared display metadata.
-Use `ai help <kind>` for the skill's launch syntax, shared guidance, configured
+Use `afctl ai help <kind>` for the skill's launch syntax, shared guidance, configured
 Codex and Claude models, and ledger ownership when applicable.
-Use `ai <codex|claude> version` to print the selected provider CLI's own
+Use `afctl ai <codex|claude> version` to print the selected provider CLI's own
 version, bypassing kind configuration and skill invocation.
 
 Each configured skill kind starts with `$<kind>` for Codex or `/<kind>` for
@@ -410,33 +410,33 @@ prompt from a readable regular file. The file path is relative to the current
 directory, and a file prompt cannot be combined with inline prompt words. A
 `preamble: "-"` entry remains unscoped and rejects scope and confidence
 options. The selected skill must already be available in the repository where
-you run `ai`.
+you run `afctl ai`.
 
 Ledger-owning implement/fix skills use `ledger.yaml` to map the selected scope
 to a canonical ledger path. The skill resolves that path when needed; normal
-`ai` prompts do not repeat it.
+`afctl ai` prompts do not repeat it.
 
-Use `ai ledger <kind> [-s <scope>] [<ledger-id>]` to render a skill's scoped
+Use `afctl ai ledger <kind> [-s <scope>] [<ledger-id>]` to render a skill's scoped
 ledger with `glow`. The scope defaults to `.`, and the kind must be the
 ledger-owning implement/fix skill with a readable `ledger.yaml` contract. For
-example, `ai ledger code-issues-implement -s lib` renders `lib/ISSUES.md`,
-while `ai ledger code-issues-implement -s lib ISSUE-12` renders only the
+example, `afctl ai ledger code-issues-implement -s lib` renders `lib/ISSUES.md`,
+while `afctl ai ledger code-issues-implement -s lib ISSUE-12` renders only the
 `ISSUE-12` entry. The ID must use the selected skill's configured prefix and a
 numeric suffix.
 
 To work on an existing entry, start an implement/fix session with that explicit
-skill and ledger ID, such as `ai codex code-issues-implement -s lib ISSUE-1`.
+skill and ledger ID, such as `afctl ai codex code-issues-implement -s lib ISSUE-1`.
 For a same-prefix batch, use `ISSUE-1/2/3`. The selected skill resolves the
 ledger and owns the batch's sequential validation and stop behavior.
 
-### 🚀 `create-ci`
+### 🚀 `afctl create-ci`
 
 Create and initialize a CircleCI project.
 
 Syntax:
 
 ```bash
-create-ci <repo-name>
+afctl create-ci <repo-name>
 ```
 
 Behavior:
@@ -446,17 +446,17 @@ Behavior:
 - Adds `CODECOV_TOKEN` as a CircleCI environment variable.
 - Triggers a `master` pipeline.
 
-### 🛠️ `deps`
+### 🛠️ `afctl deps`
 
 Install pinned Go tools:
 
 ```bash
-./deps
+afctl deps
 ```
 
-Current tool list is defined directly in [`deps`](deps).
+Current tool list is defined directly in [`afctl deps`](afctl).
 
-### 📈 `load`
+### 📈 `afctl load`
 
 Run local HTTP or gRPC load tests for `standort` and `bezeichner`.
 
@@ -467,7 +467,7 @@ current directory.
 Syntax:
 
 ```bash
-./load <kind> <service>
+afctl load <kind> <service>
 ```
 
 - `<kind>`: `http` or `grpc`
@@ -476,10 +476,10 @@ Syntax:
 Examples:
 
 ```bash
-./load http standort
-./load grpc standort
-./load http bezeichner
-./load grpc bezeichner
+afctl load http standort
+afctl load grpc standort
+afctl load http bezeichner
+afctl load grpc bezeichner
 ```
 
 Current endpoints and payloads:
@@ -506,12 +506,12 @@ Load profile:
 - HTTP uses `vegeta attack -duration=30s`.
 - gRPC uses `ghz --insecure -n 2000 -c 20`.
 
-### 💬 `lsp`
+### 💬 `afctl lsp`
 
 Run Ruby LSP in the current repository:
 
 ```bash
-./lsp
+afctl lsp
 ```
 
 Behavior:
@@ -520,39 +520,39 @@ Behavior:
 - If `test/Gemfile` exists, runs `bundle exec ruby-lsp` inside `test/`.
 - Otherwise runs from repository root.
 
-### 🔄 `rotate-ci`
+### 🔄 `afctl rotate-ci`
 
 Rotate GitHub OAuth CircleCI triggers for every project slug in
 [`lib/slugs.sh`](lib/slugs.sh).
 
 ```bash
-rotate-ci
+afctl rotate-ci
 ```
 
 Behavior:
 
 - Reads `CIRCLECI_API_TOKEN`.
 - Iterates the `slugs` array from `lib/slugs.sh`.
-- Calls `rotate-oauth-ci "$CIRCLECI_API_TOKEN" "$slug"` for each slug.
+- Calls `afctl rotate-oauth-ci "$CIRCLECI_API_TOKEN" "$slug"` for each slug.
 
 > [!CAUTION]
-> Without `DRY_RUN=1`, each `rotate-oauth-ci` call deletes an existing trigger
+> Without `DRY_RUN=1`, each `afctl rotate-oauth-ci` call deletes an existing trigger
 > before creating its replacement.
 
-### 🔁 `rotate-oauth-ci`
+### 🔁 `afctl rotate-oauth-ci`
 
 Rotate one GitHub OAuth CircleCI trigger.
 
 Syntax:
 
 ```bash
-rotate-oauth-ci <circleci-token> <project-slug>
+afctl rotate-oauth-ci <circleci-token> <project-slug>
 ```
 
 Example:
 
 ```bash
-DRY_RUN=1 rotate-oauth-ci "$CIRCLECI_API_TOKEN" gh/alexfalkowski/bin
+DRY_RUN=1 afctl rotate-oauth-ci "$CIRCLECI_API_TOKEN" gh/alexfalkowski/bin
 ```
 
 Optional environment variables:
@@ -570,14 +570,14 @@ Behavior:
 - Recreates the trigger from its existing payload.
 - Prints the new trigger JSON and ID.
 
-### 📦 `update`
+### 📦 `afctl update`
 
 Run an action across one directory set.
 
 Syntax:
 
 ```bash
-./update <dirs> <action> [args...]
+afctl update <dirs> <action> [args...]
 ```
 
 `<dirs>`:
@@ -592,51 +592,51 @@ Syntax:
 - `latest`: `make latest`
 - `purge`: `make purge`
 - `dep`: `make dep`
-- `clean`: `clean`
+- `clean`: `afctl clean`
 - `done`: `make done`
-- `ci`: `update-ci`
-- `submodule`: `update-submodule <kind> <desc>`
+- `ci`: `afctl update-ci`
+- `submodule`: `afctl update-submodule <kind> <desc>`
 
 Examples:
 
 ```bash
-./update go dep
-./update all latest
-./update all clean
-./update services ci
-./update all submodule svc "bump bin submodule"
+afctl update go dep
+afctl update all latest
+afctl update all clean
+afctl update services ci
+afctl update all submodule svc "bump bin submodule"
 ```
 
-### 🧩 `update-service`
+### 🧩 `afctl update-service`
 
 Run service-specific dependency actions across the `services` list.
 
 Syntax:
 
 ```bash
-./update-service <action> [args...]
+afctl update-service <action> [args...]
 ```
 
 Actions:
 
-- `new`: `update-service-dep <kind> <version>`
+- `new`: `afctl update-service-dep <kind> <version>`
 - `done`: `make done`
 
 Examples:
 
 ```bash
-./update-service new svc v2.3.4
-./update-service done
+afctl update-service new svc v2.3.4
+afctl update-service done
 ```
 
-### 💎 `update-ruby`
+### 💎 `afctl update-ruby`
 
 Run Ruby-specific dependency actions across the `services` and `ruby` lists.
 
 Syntax:
 
 ```bash
-./update-ruby <dirs> <action> [args...]
+afctl update-ruby <dirs> <action> [args...]
 ```
 
 `<dirs>`:
@@ -647,26 +647,26 @@ Syntax:
 
 Actions:
 
-- `new`: `update-ruby-dep <kind> <desc>`
+- `new`: `afctl update-ruby-dep <kind> <desc>`
 - `done`: `make done`
-- `bundler`: `update-bundler <version> <desc>`
+- `bundler`: `afctl update-bundler <version> <desc>`
 
 Examples:
 
 ```bash
-./update-ruby all new test "update ruby dependencies"
-./update-ruby services bundler 2.5.6 "upgrade bundler"
-./update-ruby all done
+afctl update-ruby all new test "update ruby dependencies"
+afctl update-ruby services bundler 2.5.6 "upgrade bundler"
+afctl update-ruby all done
 ```
 
-### 🧬 `update-buf`
+### 🧬 `afctl update-buf`
 
 Run Buf dependency actions across configured repositories.
 
 Syntax:
 
 ```bash
-./update-buf <dirs> <action> [args...]
+afctl update-buf <dirs> <action> [args...]
 ```
 
 `<dirs>`:
@@ -678,30 +678,30 @@ Syntax:
 
 Actions:
 
-- `new`: `update-buf-dep <kind> <desc>`
+- `new`: `afctl update-buf-dep <kind> <desc>`
 - `done`: `make done`
 
 Examples:
 
 ```bash
-./update-buf all new svc "update Buf dependencies"
-./update-buf all done
+afctl update-buf all new svc "update Buf dependencies"
+afctl update-buf all done
 ```
 
-### 🧬 `update-buf-dep`
+### 🧬 `afctl update-buf-dep`
 
 Run inside a target repository.
 
 Syntax:
 
 ```bash
-update-buf-dep <kind> <desc>
+afctl update-buf-dep <kind> <desc>
 ```
 
 Example:
 
 ```bash
-update-buf-dep svc "update Buf dependencies"
+afctl update-buf-dep svc "update Buf dependencies"
 ```
 
 Behavior:
@@ -718,20 +718,20 @@ Behavior:
 - Finalizes with
   `make msg="updated buf dependencies" desc="<desc>" ready`.
 
-### 💠 `update-bundler`
+### 💠 `afctl update-bundler`
 
 Run inside a target repository.
 
 Syntax:
 
 ```bash
-update-bundler <version> <desc>
+afctl update-bundler <version> <desc>
 ```
 
 Example:
 
 ```bash
-update-bundler 2.5.6 "upgrade bundler"
+afctl update-bundler 2.5.6 "upgrade bundler"
 ```
 
 Behavior:
@@ -745,12 +745,12 @@ Behavior:
   - `make submodule update-bundler` otherwise
 - Finalizes with `make msg="upgraded bundler to <version>" desc="<desc>" ready`.
 
-### 🏗️ `update-ci`
+### 🏗️ `afctl update-ci`
 
 Run inside a target repository with CircleCI config.
 
 ```bash
-update-ci
+afctl update-ci
 ```
 
 Behavior:
@@ -773,12 +773,12 @@ Tag handling detail:
 - The last dot segment is stripped before writing; for example, `1.2.3` becomes
   `1.2`.
 
-### 🧬 `update-go-dep`
+### 🧬 `afctl update-go-dep`
 
 Run inside a target repository.
 
 ```bash
-update-go-dep
+afctl update-go-dep
 ```
 
 Behavior:
@@ -790,20 +790,20 @@ Behavior:
   - reads modules from `make outdated-dep`
   - updates each with `make module=<module> update-dep`
 
-### 💍 `update-ruby-dep`
+### 💍 `afctl update-ruby-dep`
 
 Run inside a target repository.
 
 Syntax:
 
 ```bash
-update-ruby-dep <kind> <desc>
+afctl update-ruby-dep <kind> <desc>
 ```
 
 Example:
 
 ```bash
-update-ruby-dep test "update ruby dependencies"
+afctl update-ruby-dep test "update ruby dependencies"
 ```
 
 Behavior:
@@ -817,7 +817,7 @@ Behavior:
   - runs `make submodule update-all-dep`
 - Finalizes with `make msg="updated ruby dependencies" desc="<desc>" ready`.
 
-### 🧱 `update-docker-dep`
+### 🧱 `afctl update-docker-dep`
 
 Update a package in `$HOME/code/docker/<kind>/Dockerfile`, or in every matching
 Dockerfile.
@@ -825,15 +825,15 @@ Dockerfile.
 Syntax:
 
 ```bash
-update-docker-dep <kind|all> <package> <version>
+afctl update-docker-dep <kind|all> <package> <version>
 ```
 
 Example:
 
 ```bash
-update-docker-dep k8s doctl 1.155.0
-update-docker-dep all trivy 0.72.0
-update-docker-dep root ruby 4.0.6
+afctl update-docker-dep k8s doctl 1.155.0
+afctl update-docker-dep all trivy 0.72.0
+afctl update-docker-dep root ruby 4.0.6
 ```
 
 Behavior:
@@ -859,20 +859,20 @@ Behavior:
 - Exits with an error if every matching package is already on `<version>`.
 - Finalizes with `make msg="updated <package> to <version>" ready`.
 
-### 🌱 `update-root`
+### 🌱 `afctl update-root`
 
 Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
 
 Syntax:
 
 ```bash
-update-root <version>
+afctl update-root <version>
 ```
 
 Example:
 
 ```bash
-update-root 3.9
+afctl update-root 3.9
 ```
 
 Behavior:
@@ -890,20 +890,20 @@ Behavior:
 - Exits with an error if every matching Dockerfile is already on `<version>`.
 - Finalizes once with `make msg="updated root to <version>" ready`.
 
-### 🧩 `update-service-dep`
+### 🧩 `afctl update-service-dep`
 
 Run inside a service repository.
 
 Syntax:
 
 ```bash
-update-service-dep <kind> <version>
+afctl update-service-dep <kind> <version>
 ```
 
 Example:
 
 ```bash
-update-service-dep svc v2.3.4
+afctl update-service-dep svc v2.3.4
 ```
 
 Behavior:
@@ -914,7 +914,7 @@ Behavior:
 - Finalizes with
   `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="https://github.com/alexfalkowski/go-service/releases/tag/<version>" ready`.
 
-### 📌 `update-submodule`
+### 📌 `afctl update-submodule`
 
 Run inside a repository that includes `github.com/alexfalkowski/bin` as a
 submodule.
@@ -922,13 +922,13 @@ submodule.
 Syntax:
 
 ```bash
-update-submodule <kind> <desc>
+afctl update-submodule <kind> <desc>
 ```
 
 Example:
 
 ```bash
-update-submodule svc "bump bin submodule"
+afctl update-submodule svc "bump bin submodule"
 ```
 
 Behavior:
