@@ -32,7 +32,7 @@ completion() {
   fi
 
   printf 'typeset -g _afctl_completion_dir=%q\n' "$script_dir"
-  cat "$script_dir/completions/afctl.sh"
+  cat "$script_dir/config/completions.zsh"
 }
 
 readonly command="${1:-}"
