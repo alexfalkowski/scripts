@@ -7,11 +7,11 @@ readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 brew bundle --file="$script_dir/../Brewfile"
 
-go install github.com/alexfalkowski/gocovmerge/v2@v2.32.0
+go install github.com/alexfalkowski/gocovmerge/v2@v2.33.0
 go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
 go install gotest.tools/gotestsum@v1.13.0
 go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.49.0
-go install github.com/dkorunic/betteralign/cmd/betteralign@v0.14.4
+go install github.com/dkorunic/betteralign/cmd/betteralign@v0.15.0
 go install github.com/loov/goda@v0.9.4
 go install github.com/air-verse/air@v1.67.4
 go install github.com/lasorda/protobuf-language-server@v0.1.7
