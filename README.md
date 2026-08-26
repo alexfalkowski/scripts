@@ -359,6 +359,7 @@ afctl ai claude test-gaps-find "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
+afctl ai codex code -a "add a cache for this request"
 afctl ai codex code-issues-implement -s lib ISSUE-1
 afctl ai ledger code-issues-implement -s lib
 afctl ai ledger code-issues-implement -s lib ISSUE-12
@@ -419,10 +420,10 @@ Confidence is omitted by default, preserving the shared `>= 90%` minimum, and
 can be overridden with `-c <confidence>` (or `--confidence <confidence>`),
 such as `95%`. The configured reasoning level can be overridden for one run
 with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `-a`
-(or `--auto`) to skip approval prompts for one run: Claude gets
-`--dangerously-skip-permissions`, and Codex gets `--ask-for-approval never`.
-Codex's sandbox stays enabled either way; only its approval prompts are
-skipped. Use `--` before the prompt when it begins with `-s`, `--scope`, `-c`,
+(or `--auto`) to enable the selected provider's automatic approval mode for one
+run. Codex gets `--approve-for-me`, which routes approval requests through
+automatic review with a `workspace-write` sandbox. Claude gets
+`--permission-mode auto`. Use `--` before the prompt when it begins with `-s`, `--scope`, `-c`,
 `--confidence`, `-e`, `--effort`, `--reasoning`, `-f`, `--file`, `-a`, or
 `--auto`. Use `-f <file>` (or `--file <file>`) to read a multiline
 prompt from a readable regular file. The file path is relative to the current

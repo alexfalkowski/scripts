@@ -183,7 +183,7 @@ show_skill_help() {
   printf '  -c, --confidence <confidence>   Confidence target\n'
   printf '  -e, --effort, --reasoning <effort>  Override reasoning level\n'
   printf '  -f, --file <file>               Read the prompt from a file\n'
-  printf '  -a, --auto                      Skip provider approval prompts\n'
+  printf '  -a, --auto                      Enable the provider automatic approval mode\n'
   printf '  --                              Treat remaining arguments as prompt text\n'
   printf '\nConstraints:\n'
   printf '  A prompt file cannot be combined with inline prompt text.\n'
@@ -313,13 +313,13 @@ build_command() {
   codex)
     command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
     if [ -n "$auto" ]; then
-      command+=(--ask-for-approval never)
+      command+=(--approve-for-me)
     fi
     ;;
   claude)
     command=(claude --model "$model" --effort "$reasoning")
     if [ -n "$auto" ]; then
-      command+=(--dangerously-skip-permissions)
+      command+=(--permission-mode auto)
     fi
     ;;
   esac
