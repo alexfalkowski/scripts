@@ -313,7 +313,7 @@ build_command() {
   codex)
     command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
     if [ -n "$auto" ]; then
-      command+=(--approve-for-me)
+      command+=(--ask-for-approval never)
     fi
     ;;
   claude)

@@ -421,8 +421,8 @@ can be overridden with `-c <confidence>` (or `--confidence <confidence>`),
 such as `95%`. The configured reasoning level can be overridden for one run
 with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `-a`
 (or `--auto`) to enable the selected provider's automatic approval mode for one
-run. Codex gets `--approve-for-me`, which routes approval requests through
-automatic review with a `workspace-write` sandbox. Claude gets
+run. Codex gets `--ask-for-approval never`, which suppresses approval prompts
+while retaining the configured named permission profile. Claude gets
 `--permission-mode auto`. Use `--` before the prompt when it begins with `-s`, `--scope`, `-c`,
 `--confidence`, `-e`, `--effort`, `--reasoning`, `-f`, `--file`, `-a`, or
 `--auto`. Use `-f <file>` (or `--file <file>`) to read a multiline
