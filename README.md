@@ -31,6 +31,7 @@ Commands:
 - `afctl completion zsh`: print the zsh completion script for sourcing from shell startup.
 - `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
 - `afctl deps`: install the managed Homebrew prerequisites and update shared Go developer tools.
+- `afctl done`: complete the current repository workflow through `make done`.
 - `afctl help` (also `afctl -h` or `afctl --help`): list the commands available in this checkout.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
 - `afctl lsp`: run Ruby LSP after `make dep`.
@@ -336,6 +337,19 @@ Behavior:
 - Removes `test/vendor` when it exists.
 - Removes `vendor` when it exists.
 - Runs `make dep`.
+
+### ✅ `afctl done`
+
+Run inside a target repository:
+
+```bash
+afctl done
+```
+
+Runs the repository's `make done` workflow.
+
+> [!CAUTION]
+> This checks out `master`, pulls and updates submodules, then force-deletes the branch that was current when the command started.
 
 ### 🤖 `afctl ai`
 
