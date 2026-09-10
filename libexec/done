@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1010
+
+# Completes the current repository workflow through its configured Make target.
+set -eo pipefail
+
+make done
