@@ -29,9 +29,13 @@ _afctl_ai_options() {
     _files
     return
     ;;
+  -r | --resume)
+    _message 'session ID'
+    return
+    ;;
   esac
 
-  options=(-s --scope -c --confidence -e --effort --reasoning -f --file -a --auto --)
+  options=(-s --scope -c --confidence -e --effort --reasoning -f --file -r --resume -a --auto --print --)
   compadd -a options
 }
 
