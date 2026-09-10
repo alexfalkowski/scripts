@@ -358,7 +358,7 @@ Start an interactive Codex or Claude session for a configured kind.
 Syntax:
 
 ```bash
-afctl ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-a] [--] [prompt...]
+afctl ai <codex|claude> <kind> [-s <scope>] [-c <confidence>] [-e <effort>] [-f <file>] [-r <id>] [-a] [--print] [--] [prompt...]
 afctl ai <codex|claude> version
 afctl ai ledger <kind> [-s <scope>] [<ledger-id>]
 afctl ai skills
@@ -381,6 +381,8 @@ afctl ai skills
 afctl ai help doc-gaps-fix
 afctl ai codex code --file prompts/cache.md
 afctl ai codex code -- "-s this is a literal prompt"
+afctl ai claude question --print "respond with the current branch"
+afctl ai claude question --resume <session-id> --print "what remains?"
 afctl ai codex version
 afctl ai claude version
 ```
@@ -438,13 +440,19 @@ with `-e <effort>`, `--effort <effort>`, or `--reasoning <effort>`. Use `-a`
 run. Codex gets `--ask-for-approval never`, which suppresses approval prompts
 while retaining the configured named permission profile. Claude gets
 `--permission-mode auto`. Use `--` before the prompt when it begins with `-s`, `--scope`, `-c`,
-`--confidence`, `-e`, `--effort`, `--reasoning`, `-f`, `--file`, `-a`, or
-`--auto`. Use `-f <file>` (or `--file <file>`) to read a multiline
+`--confidence`, `-e`, `--effort`, `--reasoning`, `-f`, `--file`, `-r`,
+`--resume`, `-a`, `--auto`, or `--print`. Use `-f <file>` (or `--file <file>`) to read a multiline
 prompt from a readable regular file. The file path is relative to the current
 directory, and a file prompt cannot be combined with inline prompt words. A
-`preamble: "-"` entry remains unscoped and rejects scope and confidence
-options. The selected skill must already be available in the repository where
-you run `afctl ai`.
+session can be continued with `-r <id>` (or `--resume <id>`); its configured
+model, effort, prompt construction, and other compatible `afctl ai` flags still
+apply. Use `--print` to send the prompt, write only the final provider response
+to standard output, and exit. It uses Claude's print mode and Codex's
+non-interactive mode.
+Codex does not support `--auto` in its non-interactive mode, so that combination
+is rejected. A `preamble: "-"` entry remains unscoped and rejects scope and
+confidence options. The selected skill must already be available in the
+repository where you run `afctl ai`.
 
 Ledger-owning implement/fix skills use `ledger.yaml` to map the selected scope
 to a canonical ledger path. The skill resolves that path when needed; normal
