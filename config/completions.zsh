@@ -11,6 +11,7 @@ _afctl_skill_kinds() {
   local -a kinds
 
   for skill_dir in "$_afctl_completion_dir"/bin/skills/*(/N); do
+    [[ -r "$skill_dir/SKILL.md" ]] || continue
     kinds+=("${skill_dir:t}")
   done
 
@@ -41,7 +42,7 @@ _afctl_ai_options() {
 
 _afctl_ai() {
   local skill_dir
-  local -a commands kinds
+  local -a commands configured_kinds kinds
 
   case $CURRENT in
   3)
@@ -55,9 +56,15 @@ _afctl_ai() {
   codex | claude)
     if (( CURRENT == 4 )); then
       kinds=(version)
+      if command -v yq >/dev/null 2>&1; then
+        configured_kinds=("${(@f)$(yq eval -r '.kinds | keys | .[] | select(. != "default")' "$_afctl_completion_dir/config/ai.yml" 2>/dev/null)}")
+        kinds+=("${configured_kinds[@]}")
+      fi
       for skill_dir in "$_afctl_completion_dir"/bin/skills/*(/N); do
+        [[ -r "$skill_dir/SKILL.md" ]] || continue
         kinds+=("${skill_dir:t}")
       done
+      typeset -U kinds
       compadd -a kinds
       return
     fi
