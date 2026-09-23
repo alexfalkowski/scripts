@@ -10,7 +10,7 @@
 profiles:
   code: &code
     codex:
-      model: gpt-5.6-terra
+      model: gpt-6-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -18,7 +18,7 @@ profiles:
     preamble: "-"
   find: &find
     codex:
-      model: gpt-5.6-sol
+      model: gpt-6-astra
       reasoning: high
     claude:
       model: eu.anthropic.claude-opus-5
@@ -26,7 +26,7 @@ profiles:
     preamble: with agents and a goal
   implement: &implement
     codex:
-      model: gpt-5.6-terra
+      model: gpt-6-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -46,7 +46,7 @@ kinds:
   reliability-gaps-implement: *implement
   repo-health:
     codex:
-      model: gpt-5.6-luna
+      model: gpt-6-luna
       reasoning: medium
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -54,7 +54,7 @@ kinds:
     preamble: with agents and a goal
   research:
     codex:
-      model: gpt-5.6-sol
+      model: gpt-6-astra
       reasoning: xhigh
     claude:
       model: eu.anthropic.claude-opus-5
@@ -62,7 +62,7 @@ kinds:
     preamble: "-"
   review-pr:
     codex:
-      model: gpt-5.6-terra
+      model: gpt-6-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -70,7 +70,7 @@ kinds:
     preamble: with agents and a goal
   question:
     codex:
-      model: gpt-5.6-luna
+      model: gpt-6-luna
       reasoning: medium
     claude:
       model: eu.anthropic.claude-sonnet-5
