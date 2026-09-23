@@ -396,7 +396,7 @@ implement entries under `kinds` look like this:
 kinds:
   test-gaps-find:
     codex:
-      model: gpt-5.6-sol
+      model: gpt-6-astra
       reasoning: high
     claude:
       model: eu.anthropic.claude-opus-5
@@ -404,7 +404,7 @@ kinds:
     preamble: with agents and a goal
   test-gaps-implement:
     codex:
-      model: gpt-5.6-terra
+      model: gpt-6-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
