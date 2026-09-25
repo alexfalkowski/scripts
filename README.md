@@ -399,7 +399,7 @@ kinds:
       model: gpt-6-astra
       reasoning: high
     claude:
-      model: eu.anthropic.claude-opus-5
+      model: eu.anthropic.claude-opus-5-5
       effort: high
     preamble: with agents and a goal
   test-gaps-implement:
