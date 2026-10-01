@@ -18,6 +18,9 @@ executors:
   release:
     docker:
       - image: alexfalkowski/release:8.37
+  alpine:
+    docker:
+      - image: alpine:latest
 
 jobs:
   lint:
@@ -54,10 +57,10 @@ jobs:
       - run: package
     resource_class: arm.large
   wait-all:
-    executor: ruby
+    executor: alpine
     steps:
       - run: echo "all applicable jobs finished"
-    resource_class: arm.large
+    resource_class: small
 
 workflows:
   scripts:
