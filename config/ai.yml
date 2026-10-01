@@ -10,7 +10,7 @@
 profiles:
   code: &code
     codex:
-      model: gpt-6-sol
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -26,7 +26,7 @@ profiles:
     preamble: with agents and a goal
   implement: &implement
     codex:
-      model: gpt-6-sol
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
@@ -62,7 +62,7 @@ kinds:
     preamble: "-"
   review-pr:
     codex:
-      model: gpt-6-sol
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
