@@ -404,7 +404,7 @@ kinds:
     preamble: with agents and a goal
   test-gaps-implement:
     codex:
-      model: gpt-6-sol
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5
