@@ -10,6 +10,7 @@ brew 'make'
 # Command-specific requirements.
 brew 'buf'
 brew 'curl'
+brew 'gh'
 brew 'ghz'
 brew 'glow'
 brew 'go'

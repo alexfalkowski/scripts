@@ -35,6 +35,7 @@ Commands:
 - `afctl help` (also `afctl -h` or `afctl --help`): list the commands available in this checkout.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
 - `afctl lsp`: run Ruby LSP after `make dep`.
+- `afctl repos`: clone every non-archived `alexfalkowski` repo into `~/code`, or run `make latest` for ones already checked out there.
 - `afctl rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
 - `afctl rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
 - `afctl update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
@@ -573,6 +574,25 @@ Behavior:
 - Runs `make dep` first.
 - If `test/Gemfile` exists, runs `bundle exec ruby-lsp` inside `test/`.
 - Otherwise runs from repository root.
+
+### 📁 `afctl repos`
+
+Clone every non-archived `alexfalkowski` repo into `~/code`, or bring an
+already-checked-out one up to date:
+
+```bash
+afctl repos
+```
+
+Behavior:
+
+- Lists `alexfalkowski` repos with `gh repo list` and filters out archived ones.
+- For each repo not present at `~/code/<name>`, runs `gh repo clone`.
+- For each repo already present at `~/code/<name>`, runs `make latest` there.
+
+> [!IMPORTANT]
+> Requires an authenticated `gh` (`gh auth login`). `make latest` assumes the
+> target repository provides that Make target.
 
 ### 🔄 `afctl rotate-ci`
 
