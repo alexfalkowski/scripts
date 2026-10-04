@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2155
+
+# Clones every non-archived alexfalkowski repo into ~/code, or runs `make latest` when already checked out.
+set -eo pipefail
+
+readonly owner=alexfalkowski
+readonly code_dir="$HOME/code"
+readonly repo_names=$(gh repo list "$owner" --limit 1000 --json name,isArchived --jq '.[] | select(.isArchived == false) | .name')
+
+while IFS= read -r name; do
+  [ -n "$name" ] || continue
+  dir="$code_dir/$name"
+
+  if [ -d "$dir" ]; then
+    (cd "$dir" && make latest)
+  else
+    gh repo clone "$owner/$name" "$dir"
+  fi
+done <<<"$repo_names"
