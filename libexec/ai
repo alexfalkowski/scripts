@@ -339,13 +339,13 @@ build_command() {
         command+=("$resume_id")
       fi
     elif [ -n "$resume_id" ]; then
-      command=(codex resume --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
+      command=(codex resume --no-alt-screen --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
       if [ -n "$auto" ]; then
         command+=(--ask-for-approval never)
       fi
       command+=("$resume_id")
     else
-      command=(codex --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
+      command=(codex --no-alt-screen --model "$model" -c "model_reasoning_effort=\"$reasoning\"")
       if [ -n "$auto" ]; then
         command+=(--ask-for-approval never)
       fi
