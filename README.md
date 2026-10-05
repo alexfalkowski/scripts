@@ -587,12 +587,14 @@ afctl repos
 Behavior:
 
 - Lists `alexfalkowski` repos with `gh repo list` and filters out archived ones.
-- For each repo not present at `~/code/<name>`, runs `gh repo clone`.
+- For each repo not present at `~/code/<name>`, runs `gh repo clone` with an
+  explicit SSH URL (`git@github.com:alexfalkowski/<name>.git`) and initializes
+  submodules recursively. Submodules use their configured URLs.
 - For each repo already present at `~/code/<name>`, runs `make latest` there.
 
 > [!IMPORTANT]
-> Requires an authenticated `gh` (`gh auth login`). `make latest` assumes the
-> target repository provides that Make target.
+> Requires an authenticated `gh` (`gh auth login`) and GitHub SSH access for
+> cloning. `make latest` assumes the target repository provides that Make target.
 
 ### 🔄 `afctl rotate-ci`
 
