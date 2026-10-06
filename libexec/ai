@@ -352,7 +352,7 @@ build_command() {
     fi
     ;;
   claude)
-    command=(claude --model "$model" --effort "$reasoning")
+    command=(env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model "$model" --effort "$reasoning")
     if [ -n "$auto" ]; then
       command+=(--permission-mode auto)
     fi
