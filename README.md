@@ -357,7 +357,8 @@ Runs the repository's `make done` workflow.
 Start an interactive Codex or Claude session for a configured kind.
 
 Interactive Codex sessions, including resumed sessions, use `--no-alt-screen`
-to preserve terminal scrollback on Linux and macOS.
+to preserve terminal scrollback on Linux and macOS. Claude sessions set
+`CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` for the same reason.
 
 Syntax:
 
