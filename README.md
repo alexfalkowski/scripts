@@ -412,7 +412,7 @@ kinds:
       model: gpt-6.1-sol
       reasoning: high
     claude:
-      model: eu.anthropic.claude-sonnet-5
+      model: eu.anthropic.claude-sonnet-5-5
       effort: high
     preamble: with agents and a goal
 ```
