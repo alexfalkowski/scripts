@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2155,SC1091
+# shellcheck disable=SC2155,SC1091,SC2154
 
 # Update image tool dependencies in the local docker image repository.
 
@@ -7,9 +7,12 @@ set -eo pipefail
 
 readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$root_dir/lib/version.sh"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
+set -- "${update_args[@]}"
 
 usage() {
-  echo "usage: afctl update-docker-dep <kind|all> <package> <version>" >&2
+  echo "usage: afctl update-docker-dep <kind|all> <package> <version> [--no-pr]" >&2
   exit 1
 }
 
@@ -261,7 +264,9 @@ update_kind() {
   local package_bump=$(version_bump "$old_package_version" "$version")
   local next_image_version=$(version_next "$old_image_version" "$package_bump")
 
-  make name="$image_kind" new-feature
+  if [ "$update_no_pr" = false ]; then
+    make name="$image_kind" new-feature
+  fi
   update_package_version "$dockerfile"
   image_update_version "$makefile" "$next_image_version"
 }
@@ -301,7 +306,7 @@ update_all() {
     next_image_version=$(version_next "$old_image_version" "$package_bump")
 
     # Start one dependency-update branch for the whole multi-image change.
-    if [ "$updated" = false ]; then
+    if [ "$updated" = false ] && [ "$update_no_pr" = false ]; then
       make name=deps new-feature
     fi
 
@@ -330,5 +335,7 @@ update_all() {
     update_kind "$kind"
   fi
 
-  make msg="updated $package to $version" ready
+  if [ "$update_no_pr" = false ]; then
+    make msg="updated $package to $version" ready
+  fi
 )

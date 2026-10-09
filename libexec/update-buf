@@ -30,7 +30,7 @@ esac
 case $action in
 new)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-buf-dep "$3" "$4")
+    (cd "$dir" && update-buf-dep "${@:3}")
   done
   ;;
 

@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
 
 set -eo pipefail
+
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
+set -- "${update_args[@]}"
 
 readonly kind=$1
 readonly desc=$2
 
-make name=deps new-"${kind}"
+if [ "$update_no_pr" = false ]; then
+  make name=deps new-"${kind}"
+fi
 make update-submodule
-make msg="upgraded github.com/alexfalkowski/bin" desc="${desc}" ready
+if [ "$update_no_pr" = false ]; then
+  make msg="upgraded github.com/alexfalkowski/bin" desc="${desc}" ready
+fi

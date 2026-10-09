@@ -10,7 +10,7 @@ readonly action=$1
 case $action in
 new)
   for dir in "${services[@]}"; do
-    (cd "$dir" && update-service-dep "$2" "$3")
+    (cd "$dir" && update-service-dep "${@:2}")
   done
   ;;
 

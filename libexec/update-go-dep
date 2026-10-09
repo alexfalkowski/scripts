@@ -16,14 +16,48 @@ def make(*args)
   abort("make #{args.join(' ')} failed")
 end
 
-if File.exist?('test/Gemfile')
-  make_output('go-outdated-dep').each do |dep|
-    mod, = dep.split
-    make("module=#{mod}", 'go-update-dep')
-  end
-else
-  make_output('outdated-dep').each do |dep|
-    mod, = dep.split
-    make("module=#{mod}", 'update-dep')
+args = []
+no_pr = false
+until ARGV.empty?
+  arg = ARGV.shift
+  case arg
+  when '--no-pr'
+    no_pr = true
+  when '--'
+    args.concat(ARGV)
+    break
+  else
+    args << arg
   end
 end
+
+unless args.empty? || (args.size == 2 && args.none? { |arg| arg.strip.empty? })
+  abort('usage: afctl update-go-dep [<kind> <desc>] [--no-pr]')
+end
+
+kind, desc = args
+create_pr = !args.empty? && !no_pr
+if File.exist?('test/Gemfile')
+  outdated_target = 'go-outdated-dep'
+  update_target = 'go-update-dep'
+else
+  outdated_target = 'outdated-dep'
+  update_target = 'update-dep'
+end
+
+deps = make_output(outdated_target)
+exit if deps.empty?
+
+if create_pr
+  make('name=deps', "new-#{kind}")
+  # new-* checks out the latest master; resolve modules again on that branch.
+  deps = make_output(outdated_target)
+  exit if deps.empty?
+end
+
+deps.each do |dep|
+  mod, = dep.split
+  make("module=#{mod}", update_target)
+end
+
+make('msg=updated go dependencies', "desc=#{desc}", 'ready') if create_pr

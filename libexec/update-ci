@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
 
 set -eo pipefail
+
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
 
 # Find the newest published Docker Hub tag and drop the patch segment.
 latest_image() {
@@ -46,7 +51,9 @@ update_config() {
 		"$file"
 }
 
-make name=ci new-build
+if [ "$update_no_pr" = false ]; then
+	make name=ci new-build
+fi
 
 if [ -f .circleci/continue_config.yml ]; then
 	update_config .circleci/continue_config.yml
@@ -54,4 +61,6 @@ else
 	update_config .circleci/config.yml
 fi
 
-make msg="use latest published images" ready
+if [ "$update_no_pr" = false ]; then
+	make msg="use latest published images" ready
+fi

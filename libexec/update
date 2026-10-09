@@ -48,13 +48,13 @@ dep)
 
 submodule)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-submodule "$3" "$4")
+    (cd "$dir" && update-submodule "${@:3}")
   done
   ;;
 
 ci)
   for dir in "${directories[@]}"; do
-    (cd "$dir" && update-ci)
+    (cd "$dir" && update-ci "${@:3}")
   done
   ;;
 

@@ -101,7 +101,13 @@ _afctl_update() {
     _values action latest purge dep clean done ci submodule
     ;;
   5)
-    [[ $words[4] == submodule ]] && _values kind build docs feature fix refactor test
+    case $words[4] in
+    submodule) _values kind build docs feature fix refactor test ;;
+    ci) compadd -- --no-pr ;;
+    esac
+    ;;
+  7)
+    [[ $words[4] == submodule ]] && compadd -- --no-pr
     ;;
   esac
 }
@@ -116,6 +122,9 @@ _afctl_update_buf() {
     ;;
   5)
     [[ $words[4] == new ]] && _values kind build docs feature fix refactor test
+    ;;
+  7)
+    [[ $words[4] == new ]] && compadd -- --no-pr
     ;;
   esac
 }
@@ -138,6 +147,9 @@ _afctl_update_ruby() {
       ;;
     esac
     ;;
+  7)
+    [[ $words[4] == new || $words[4] == bundler ]] && compadd -- --no-pr
+    ;;
   esac
 }
 
@@ -151,6 +163,9 @@ _afctl_update_service() {
     ;;
   5)
     [[ $words[3] == new ]] && _message 'go-service version'
+    ;;
+  6)
+    [[ $words[3] == new ]] && compadd -- --no-pr
     ;;
   esac
 }
@@ -196,19 +211,49 @@ _afctl() {
     _afctl_update_service
     ;;
   update-buf-dep | update-ruby-dep | update-submodule)
-    (( CURRENT == 3 )) && _values kind build docs feature fix refactor test
+    case $CURRENT in
+    3) _values kind build docs feature fix refactor test ;;
+    5) compadd -- --no-pr ;;
+    esac
     ;;
-  update-bundler | update-root)
-    (( CURRENT == 3 )) && _message version
+  update-go-dep)
+    case $CURRENT in
+    3)
+      _values kind build docs feature fix refactor test
+      compadd -- --no-pr
+      ;;
+    4) _message description ;;
+    5) compadd -- --no-pr ;;
+    esac
+    ;;
+  update-bundler)
+    case $CURRENT in
+    3) _message version ;;
+    5) compadd -- --no-pr ;;
+    esac
+    ;;
+  update-ci)
+    (( CURRENT == 3 )) && compadd -- --no-pr
+    ;;
+  update-root)
+    case $CURRENT in
+    3) _message version ;;
+    4) compadd -- --no-pr ;;
+    esac
     ;;
   update-service-dep)
     case $CURRENT in
     3) _values kind build docs feature fix refactor test ;;
     4) _message 'go-service version' ;;
+    5) compadd -- --no-pr ;;
     esac
     ;;
   update-docker-dep)
-    _message 'image kind, package, or version'
+    if (( CURRENT == 6 )); then
+      compadd -- --no-pr
+    else
+      _message 'image kind, package, or version'
+    fi
     ;;
   create-ci)
     (( CURRENT == 3 )) && _message 'repository name'
