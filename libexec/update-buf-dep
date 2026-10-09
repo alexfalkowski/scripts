@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
 
 # Updates pinned Buf remote plugins and regenerates their outputs.
 set -eo pipefail
+
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
+set -- "${update_args[@]}"
 
 readonly kind=$1
 readonly desc=$2
@@ -58,7 +64,9 @@ done
 
 [ "$changed" = true ] || exit 0
 
-make name=deps new-"${kind}"
+if [ "$update_no_pr" = false ]; then
+  make name=deps new-"${kind}"
+fi
 
 for config_index in "${!configs[@]}"; do
   config="${configs[$config_index]}"
@@ -85,4 +93,6 @@ for config_index in "${!configs[@]}"; do
   make -C "$dir" generate
 done
 
-make msg="updated buf dependencies" desc="${desc}" ready
+if [ "$update_no_pr" = false ]; then
+  make msg="updated buf dependencies" desc="${desc}" ready
+fi

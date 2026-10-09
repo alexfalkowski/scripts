@@ -180,7 +180,32 @@ a script finalizes with `make ready`, the shared Git workflow commits all
 changes, force-pushes the current branch with a lease, opens a GitHub PR, and
 enables auto squash-merge. This applies directly or transitively to
 `update-buf-dep`, `update-ci`, `update-bundler`, `update-ruby-dep`, `update-service-dep`,
-`update-docker-dep`, `update-root`, and `update-submodule`.
+`update-docker-dep`, `update-root`, and `update-submodule`. It also applies to
+`update-go-dep` when `<kind> <desc>` is supplied without `--no-pr`.
+
+`update-ci`, `update-submodule`, `update-service-dep`, `update-ruby-dep`,
+`update-docker-dep`, `update-go-dep`, `update-root`, `update-bundler`, and `update-buf-dep`
+accept `--no-pr`.
+This skips both the `new-*` branch workflow and `make ready`: updates run on
+the current branch and leave changes uncommitted, without pushing or opening
+a PR. Dependency downloads, Bundler installation, submodule updates, and
+generation still run as usual. `update-docker-dep` and `update-root` still operate in
+`$HOME/code/docker`.
+
+Keep any required positional arguments, including `<kind>` and `<desc>`, when
+using `--no-pr`. The flag can appear before or after them; use `--` to keep
+subsequent arguments literal. Bulk update actions forward arguments after the
+action to their helpers:
+
+```bash
+afctl update-ci --no-pr
+afctl update services ci --no-pr
+afctl update-ruby all new test "update ruby dependencies" --no-pr
+```
+
+`update-go-dep` preserves its argument-free update-only behavior. Supplying
+`<kind> <desc>` opts into the branch and PR workflow; `--no-pr` skips that
+workflow even when those arguments are supplied.
 
 `done` actions run `make done` in each target repository. That shared workflow
 checks out `master`, pulls, updates submodules, then deletes the branch that was
@@ -684,7 +709,9 @@ afctl update go dep
 afctl update all latest
 afctl update all clean
 afctl update services ci
+afctl update services ci --no-pr
 afctl update all submodule svc "bump bin submodule"
+afctl update all submodule build "bump bin submodule" --no-pr
 ```
 
 ### 🧩 `afctl update-service`
@@ -706,6 +733,7 @@ Examples:
 
 ```bash
 afctl update-service new svc v2.3.4
+afctl update-service new build v2.3.4 --no-pr
 afctl update-service done
 ```
 
@@ -736,6 +764,7 @@ Examples:
 ```bash
 afctl update-ruby all new test "update ruby dependencies"
 afctl update-ruby services bundler 2.5.6 "upgrade bundler"
+afctl update-ruby services bundler 2.5.6 "upgrade bundler" --no-pr
 afctl update-ruby all done
 ```
 
@@ -765,6 +794,7 @@ Examples:
 
 ```bash
 afctl update-buf all new svc "update Buf dependencies"
+afctl update-buf all new build "update Buf dependencies" --no-pr
 afctl update-buf all done
 ```
 
@@ -775,7 +805,7 @@ Run inside a target repository.
 Syntax:
 
 ```bash
-afctl update-buf-dep <kind> <desc>
+afctl update-buf-dep <kind> <desc> [--no-pr]
 ```
 
 Example:
@@ -784,7 +814,7 @@ Example:
 afctl update-buf-dep svc "update Buf dependencies"
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Finds each `Makefile` that includes `bin/build/make/buf.mak`, including
   relative-path variants.
@@ -805,7 +835,7 @@ Run inside a target repository.
 Syntax:
 
 ```bash
-afctl update-bundler <version> <desc>
+afctl update-bundler <version> <desc> [--no-pr]
 ```
 
 Example:
@@ -814,7 +844,7 @@ Example:
 afctl update-bundler 2.5.6 "upgrade bundler"
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Runs `make name=deps new-test`.
 - Installs the requested Bundler version:
@@ -830,10 +860,10 @@ Behavior:
 Run inside a target repository with CircleCI config.
 
 ```bash
-afctl update-ci
+afctl update-ci [--no-pr]
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Runs `make name=ci new-build`.
 - Reads latest tags for these Docker images from Docker Hub:
@@ -857,12 +887,34 @@ Tag handling detail:
 
 Run inside a target repository.
 
+Syntax:
+
+```bash
+afctl update-go-dep [<kind> <desc>] [--no-pr]
+```
+
+Examples:
+
 ```bash
 afctl update-go-dep
+afctl update-go-dep build "update Go dependencies"
+afctl update-go-dep build "update Go dependencies" --no-pr
 ```
 
 Behavior:
 
+- With no positional arguments, updates on the current branch and leaves
+  changes uncommitted, preserving the existing behavior.
+- With `<kind> <desc>`, starts `make name=deps new-<kind>` and finalizes with
+  `make msg="updated go dependencies" desc="<desc>" ready`.
+- `--no-pr` skips branch creation and `ready`, whether or not positional
+  arguments are supplied. Flags can precede or follow the positional
+  arguments; `--` keeps subsequent arguments literal.
+- Rejects incomplete or extra positional arguments before running Make targets.
+- Exits successfully without creating a branch or PR when the initial lookup
+  finds no outdated modules.
+- After branch creation, resolves outdated modules again against the updated
+  `master` base before applying updates.
 - If `test/Gemfile` exists:
   - reads modules from `make go-outdated-dep`
   - updates each with `make module=<module> go-update-dep`
@@ -877,7 +929,7 @@ Run inside a target repository.
 Syntax:
 
 ```bash
-afctl update-ruby-dep <kind> <desc>
+afctl update-ruby-dep <kind> <desc> [--no-pr]
 ```
 
 Example:
@@ -886,7 +938,7 @@ Example:
 afctl update-ruby-dep test "update ruby dependencies"
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Exits successfully when no `Gemfile` is found.
 - When `test/Gemfile` exists:
@@ -905,7 +957,7 @@ Dockerfile.
 Syntax:
 
 ```bash
-afctl update-docker-dep <kind|all> <package> <version>
+afctl update-docker-dep <kind|all> <package> <version> [--no-pr]
 ```
 
 Example:
@@ -916,7 +968,7 @@ afctl update-docker-dep all trivy 0.72.0
 afctl update-docker-dep root ruby 4.0.6
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Changes to `$HOME/code/docker`.
 - Starts `make name=<kind> new-feature` for a single image kind, or starts
@@ -946,16 +998,17 @@ Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
 Syntax:
 
 ```bash
-afctl update-root <version>
+afctl update-root <version> [--no-pr]
 ```
 
 Example:
 
 ```bash
 afctl update-root 3.9
+afctl update-root 3.9 --no-pr
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Changes to `$HOME/code/docker`.
 - Starts a dependency feature workflow with `make name=deps new-feature`.
@@ -977,7 +1030,7 @@ Run inside a service repository.
 Syntax:
 
 ```bash
-afctl update-service-dep <kind> <version>
+afctl update-service-dep <kind> <version> [--no-pr]
 ```
 
 Example:
@@ -986,7 +1039,7 @@ Example:
 afctl update-service-dep svc v2.3.4
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Runs `make name=deps new-<kind>`.
 - Runs `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`.
@@ -1002,7 +1055,7 @@ submodule.
 Syntax:
 
 ```bash
-afctl update-submodule <kind> <desc>
+afctl update-submodule <kind> <desc> [--no-pr]
 ```
 
 Example:
@@ -1011,7 +1064,7 @@ Example:
 afctl update-submodule svc "bump bin submodule"
 ```
 
-Behavior:
+Behavior without `--no-pr`:
 
 - Runs `make name=deps new-<kind>`.
 - Runs `make update-submodule`.

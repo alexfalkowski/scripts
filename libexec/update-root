@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091,SC2155
+# shellcheck disable=SC1091,SC2154,SC2155
 
 # Update alexfalkowski/root across the local docker image repository.
 
@@ -7,13 +7,16 @@ set -eo pipefail
 
 readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$root_dir/lib/version.sh"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
+set -- "${update_args[@]}"
 
 readonly dir="$HOME/code/docker"
 readonly image="alexfalkowski/root"
 readonly version=$1
 
 if [ -z "$version" ]; then
-  echo "usage: afctl update-root <version>" >&2
+  echo "usage: afctl update-root <version> [--no-pr]" >&2
   exit 1
 fi
 
@@ -81,7 +84,7 @@ update_root_version() {
     root_bump=$(version_bump "$old_root_version" "$version")
     next_image_version=$(version_next "$old_image_version" "$root_bump")
 
-    if [ "$updated" = false ]; then
+    if [ "$updated" = false ] && [ "$update_no_pr" = false ]; then
       make name=deps new-feature
     fi
 
@@ -100,5 +103,7 @@ update_root_version() {
     exit 1
   fi
 
-  make msg="updated root to $version" ready
+  if [ "$update_no_pr" = false ]; then
+    make msg="updated root to $version" ready
+  fi
 )

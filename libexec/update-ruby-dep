@@ -1,16 +1,30 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
 
 set -eo pipefail
+
+readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/update.sh"
+parse_update_args "$@"
+set -- "${update_args[@]}"
 
 readonly kind=$1
 readonly desc=$2
 
 if [ -f test/Gemfile ]; then
-  make name=deps new-"${kind}"
+  if [ "$update_no_pr" = false ]; then
+    make name=deps new-"${kind}"
+  fi
   make submodule ruby-update-all-dep
-  make msg="updated ruby dependencies" desc="${desc}" ready
+  if [ "$update_no_pr" = false ]; then
+    make msg="updated ruby dependencies" desc="${desc}" ready
+  fi
 elif [ -f Gemfile ]; then
-  make name=deps new-"${kind}"
+  if [ "$update_no_pr" = false ]; then
+    make name=deps new-"${kind}"
+  fi
   make submodule update-all-dep
-  make msg="updated ruby dependencies" desc="${desc}" ready
+  if [ "$update_no_pr" = false ]; then
+    make msg="updated ruby dependencies" desc="${desc}" ready
+  fi
 fi
