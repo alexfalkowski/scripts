@@ -16,11 +16,12 @@ if [ "$update_no_pr" = false ]; then
 fi
 
 # Services have ruby in the test folder.
+# User-installed Bundler survives Homebrew Ruby's gem cleanup during upgrades.
 if [ -f test/Gemfile ]; then
-  (cd test && gem install bundler -v "$version")
+  (cd test && gem install bundler -v "$version" --user-install)
   make submodule ruby-update-bundler
 else
-  gem install bundler -v "$version"
+  gem install bundler -v "$version" --user-install
   make submodule update-bundler
 fi
 

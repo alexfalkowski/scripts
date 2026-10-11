@@ -30,7 +30,7 @@ Commands:
 - `afctl clean`: remove dependency vendor directories and rerun `make dep`.
 - `afctl completion zsh`: print the zsh completion script for sourcing from shell startup.
 - `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
-- `afctl deps`: install the managed Homebrew prerequisites and update shared Go developer tools.
+- `afctl deps`: install the managed Homebrew prerequisites, user Bundler, and shared Go developer tools.
 - `afctl done`: complete the current repository workflow through `make done`.
 - `afctl help` (also `afctl -h` or `afctl --help`): list the commands available in this checkout.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
@@ -73,8 +73,9 @@ tools on `PATH` (for example, in `~/.zshrc`):
 export PATH="$(brew --prefix coreutils)/libexec/gnubin:$(brew --prefix gnu-sed)/libexec/gnubin:$PATH"
 ```
 
-Ruby dependencies remain managed by the existing `Gemfile`; run `make dep`
-after installing the Brewfile prerequisites.
+`afctl deps` also installs Bundler in RubyGems' user gem directory so Homebrew
+Ruby upgrades do not remove it. Ruby dependencies remain managed by the existing
+`Gemfile`; run `make dep` after installing the Brewfile prerequisites.
 
 > [!IMPORTANT]
 > Bulk commands (`afctl update`, `afctl update-buf`, `afctl update-service`, `afctl update-ruby`, and `afctl rotate-ci`) invoke their helpers by command name after changing directories or iterating configured slugs. `afctl` adds `libexec/` to `PATH` for those invocations.
@@ -531,14 +532,15 @@ Behavior:
 
 ### 🛠️ `afctl deps`
 
-Install the Brewfile prerequisites and pinned Go tools:
+Install the Brewfile prerequisites, Bundler, and pinned Go tools:
 
 ```bash
 afctl deps
 ```
 
-Homebrew dependencies are defined in [`Brewfile`](Brewfile); pinned Go tools
-are defined directly in [`libexec/deps`](libexec/deps).
+Homebrew dependencies are defined in [`Brewfile`](Brewfile). Bundler is installed
+in RubyGems' user gem directory; pinned Go tools are defined directly in
+[`libexec/deps`](libexec/deps).
 
 ### 📈 `afctl load`
 
@@ -847,9 +849,9 @@ afctl update-bundler 2.5.6 "upgrade bundler"
 Behavior without `--no-pr`:
 
 - Runs `make name=deps new-test`.
-- Installs the requested Bundler version:
-  - in `test/` when `test/Gemfile` exists
-  - otherwise in repo root
+- Installs the requested Bundler version in RubyGems' user gem directory.
+  The installation runs from `test/` when `test/Gemfile` exists, otherwise
+  from the repo root.
 - Runs the follow-up make target:
   - `make submodule ruby-update-bundler` when `test/Gemfile` exists
   - `make submodule update-bundler` otherwise
@@ -1072,6 +1074,37 @@ Behavior without `--no-pr`:
   `make msg="upgraded github.com/alexfalkowski/bin" desc="<desc>" ready`.
 
 ## 🧯 Troubleshooting
+
+### 💎 Bundler version and gem specification mismatch
+
+Homebrew Ruby upgrades can leave an earlier `gem update --system` installation
+in the persistent `site_ruby` directory while replacing Bundler's default gem
+specification. They also remove Bundler installations from Homebrew's shared
+gem directory (see the [Ruby formula](https://github.com/Homebrew/homebrew-core/blob/main/Formula/r/ruby.rb)).
+This can produce an error saying the running Bundler version
+does not match its installed specification.
+
+Install the affected project's `BUNDLED WITH` version from `Gemfile.lock` (or
+`test/Gemfile.lock`) in the user gem directory, then rerun the project's
+dependency target. For a service locked to Bundler 4.0.22, run from its root:
+
+```bash
+gem install bundler -v 4.0.22 --user-install
+make ruby-dep
+```
+
+Use `make dep` for a repository with a root `Gemfile`. The Homebrew `bundle`
+and `bundler` executables discover user-installed Bundler through RubyGems;
+changing `PATH` is not required for these commands with the default gem paths.
+If you override `GEM_PATH`, include the directory reported by
+`gem environment user_gemhome`.
+
+Use `afctl deps` to update Homebrew-managed Ruby and bootstrap Bundler, and
+`afctl update-bundler` for subsequent Bundler upgrades. Both install Bundler
+with `--user-install`, keeping it outside Homebrew's cleanup path. Avoid
+`gem update --system` with Homebrew Ruby; let Homebrew manage RubyGems.
+Reinstall user gems after changing Ruby's major or minor version, since each
+Ruby API version has its own user gem directory.
 
 ### 🧰 `command not found` for helper scripts
 

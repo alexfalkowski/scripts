@@ -7,6 +7,9 @@ readonly script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 brew bundle --file="$script_dir/../Brewfile"
 
+# Keep Bundler outside Homebrew's gem directory, which Ruby upgrades clean up.
+gem install bundler --user-install
+
 go install github.com/alexfalkowski/gocovmerge/v2@v2.36.0
 go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
 go install gotest.tools/gotestsum@v1.13.0
