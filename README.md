@@ -65,6 +65,10 @@ command-line prerequisites and pinned Go developer tools:
 optional AI provider CLIs; remove the `codex` or `claude-code@latest` cask
 entry before running the command if you use only one.
 
+The Brewfile includes the Docker CLI and Buildx plugin. Docker targets also
+require a running Docker engine. If Docker cannot find Buildx, follow the
+[Homebrew plugin directory instructions](https://formulae.brew.sh/formula/docker-buildx).
+
 For the GNU `sed` and `sort` behavior used by `update-ci` and
 `update-docker-dep`, put Homebrew's GNU tool directories before the system
 tools on `PATH` (for example, in `~/.zshrc`):
