@@ -95,7 +95,7 @@ _afctl_ai() {
 _afctl_update() {
   case $CURRENT in
   3)
-    _values 'directory set' ruby go services all
+    _values 'directory set' ruby go services tooling all
     ;;
   4)
     _values action latest purge dep clean done ci submodule
@@ -115,7 +115,7 @@ _afctl_update() {
 _afctl_update_buf() {
   case $CURRENT in
   3)
-    _values 'directory set' ruby go services all
+    _values 'directory set' ruby go services tooling all
     ;;
   4)
     _values action new done
