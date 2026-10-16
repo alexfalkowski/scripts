@@ -38,7 +38,7 @@ Commands:
 - `afctl repos`: clone every non-archived `alexfalkowski` repo into `~/code`, or run `make latest` for ones already checked out there.
 - `afctl rotate-ci`: rotate GitHub OAuth CircleCI triggers for slugs in `lib/slugs.sh`.
 - `afctl rotate-oauth-ci`: rotate one GitHub OAuth CircleCI trigger.
-- `afctl update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `all`).
+- `afctl update`: run bulk actions over a directory set (`ruby`, `go`, `services`, `tooling`, `all`).
 - `afctl update-buf`: run Buf-related bulk actions over configured repository sets.
 - `afctl update-buf-dep`: update pinned Buf remote plugins and regenerate outputs.
 - `afctl update-bundler`: install a Bundler version and run follow-up make targets.
@@ -169,7 +169,8 @@ Defined arrays:
 - `ruby`
 - `go`
 - `services`
-- `all` (concatenation of the three above)
+- `tooling` (`scripts`)
+- `all` (concatenation of the four above)
 
 Current defaults are maintainer-local paths under `$HOME/code/...`.
 
@@ -231,7 +232,7 @@ afctl update all done
 ```
 
 Use this when you want a broad dependency refresh across your configured `ruby`,
-`go`, and `services` sets.
+`go`, `services`, and `tooling` sets.
 
 ### 🧹 Reinstall dependencies in all configured repos
 
@@ -696,6 +697,7 @@ afctl update <dirs> <action> [args...]
 - `ruby`
 - `go`
 - `services`
+- `tooling`
 - `all`
 
 `<action>`:
@@ -712,6 +714,7 @@ Examples:
 
 ```bash
 afctl update go dep
+afctl update tooling dep
 afctl update all latest
 afctl update all clean
 afctl update services ci
@@ -789,6 +792,7 @@ afctl update-buf <dirs> <action> [args...]
 - `ruby`
 - `go`
 - `services`
+- `tooling`
 - `all`
 
 Actions:

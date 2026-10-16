@@ -21,6 +21,10 @@ services)
   readonly directories=("${services[@]}")
   ;;
 
+tooling)
+  readonly directories=("${tooling[@]}")
+  ;;
+
 all)
   readonly directories=("${all[@]}")
   ;;
