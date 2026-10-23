@@ -859,12 +859,15 @@ afctl update-bundler 2.5.6 "upgrade bundler"
 Behavior without `--no-pr`:
 
 - Runs `make name=deps new-test`.
+- Runs `make submodule`.
 - Installs the requested Bundler version in RubyGems' user gem directory.
   The installation runs from `test/` when `test/Gemfile` exists, otherwise
   from the repo root.
 - Runs the follow-up make target:
-  - `make submodule ruby-update-bundler` when `test/Gemfile` exists
-  - `make submodule update-bundler` otherwise
+  - `BUNDLE_VERSION=system make ruby-update-bundler` when `test/Gemfile` exists
+  - `BUNDLE_VERSION=system make update-bundler` otherwise
+- The temporary `BUNDLE_VERSION=system` override uses installed Bundler even
+  when Homebrew removed the previously locked executable.
 - Finalizes with `make msg="upgraded bundler to <version>" desc="<desc>" ready`.
 
 ### 🏗️ `afctl update-ci`
