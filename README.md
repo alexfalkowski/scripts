@@ -434,7 +434,7 @@ implement entries under `kinds` look like this:
 kinds:
   test-gaps-find:
     codex:
-      model: gpt-6-astra
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-opus-5-5
