@@ -18,7 +18,7 @@ profiles:
     preamble: "-"
   find: &find
     codex:
-      model: gpt-6-astra
+      model: gpt-6.1-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-opus-5-5
@@ -46,7 +46,7 @@ kinds:
   reliability-gaps-implement: *implement
   repo-health:
     codex:
-      model: gpt-6-luna
+      model: gpt-6.1-sol
       reasoning: medium
     claude:
       model: eu.anthropic.claude-sonnet-5-5
@@ -70,7 +70,7 @@ kinds:
     preamble: with agents and a goal
   question:
     codex:
-      model: gpt-6-luna
+      model: gpt-6.1-sol
       reasoning: medium
     claude:
       model: eu.anthropic.claude-sonnet-5-5
