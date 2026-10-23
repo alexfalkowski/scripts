@@ -4,6 +4,7 @@
 set -eo pipefail
 
 readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/bundler.sh"
 source "$root_dir/lib/update.sh"
 parse_update_args "$@"
 set -- "${update_args[@]}"
@@ -15,14 +16,13 @@ if [ "$update_no_pr" = false ]; then
   make name=deps new-test
 fi
 
+make submodule
+
 # Services have ruby in the test folder.
-# User-installed Bundler survives Homebrew Ruby's gem cleanup during upgrades.
 if [ -f test/Gemfile ]; then
-  (cd test && gem install bundler -v "$version" --user-install)
-  make submodule ruby-update-bundler
+  update_bundler ruby-update-bundler -v "$version"
 else
-  gem install bundler -v "$version" --user-install
-  make submodule update-bundler
+  update_bundler update-bundler -v "$version"
 fi
 
 if [ "$update_no_pr" = false ]; then
