@@ -35,8 +35,9 @@ new version.
 
 ## Known Gotchas
 
-- Bundler upgrades are handled by `afctl update-ruby <dirs> bundler <version> <desc>`;
-  `afctl update-service` only handles service dependency bumps and `done`.
+- `afctl update-service new <kind> <version>` updates Bundler alongside service
+  and Ruby test dependencies. Use `afctl update-ruby <dirs> bundler <version> <desc>`
+  for a standalone Bundler upgrade.
 - `afctl update-ci` edits CircleCI config in the target repo in place.
 - `afctl create-ci` makes live CircleCI API calls and triggers a pipeline.
 - `afctl clean` removes `test/vendor` and `vendor` before rerunning `make dep`.

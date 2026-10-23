@@ -4,6 +4,7 @@
 set -eo pipefail
 
 readonly root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$root_dir/lib/bundler.sh"
 source "$root_dir/lib/update.sh"
 parse_update_args "$@"
 set -- "${update_args[@]}"
@@ -15,8 +16,14 @@ readonly desc="https://github.com/alexfalkowski/go-service/releases/tag/${versio
 if [ "$update_no_pr" = false ]; then
   make name=deps new-"${kind}"
 fi
+
 make module=github.com/alexfalkowski/go-service/v2@"$version" go-get
-make submodule go-dep ruby-update-all-dep
+make submodule go-dep
+
+update_bundler ruby-update-bundler
+
+make ruby-update-all-dep
+
 if [ "$update_no_pr" = false ]; then
   make msg="upgraded github.com/alexfalkowski/go-service/v2 to $version" desc="${desc}" ready
 fi

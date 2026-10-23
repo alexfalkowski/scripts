@@ -267,7 +267,9 @@ afctl update-service new svc v2.3.4
 afctl update-service done
 ```
 
-Replace `v2.3.4` as needed.
+Replace `v2.3.4` as needed. This also installs the latest Bundler in RubyGems'
+user gem directory and updates the Bundler lock and Ruby test dependencies in
+each service repository.
 
 ### 📌 Bump `bin` submodule across all configured repos
 
@@ -953,10 +955,16 @@ Behavior without `--no-pr`:
 - Exits successfully when no `Gemfile` is found.
 - When `test/Gemfile` exists:
   - runs `make name=deps new-<kind>`
-  - runs `make submodule ruby-update-all-dep`
+  - runs `make submodule`
+  - installs the latest Bundler in RubyGems' user gem directory and runs
+    `BUNDLE_VERSION=system make ruby-update-bundler` to refresh `test/Gemfile.lock`
+  - runs `make ruby-update-all-dep`
 - When root `Gemfile` exists:
   - runs `make name=deps new-<kind>`
-  - runs `make submodule update-all-dep`
+  - runs `make submodule`
+  - installs the latest Bundler in RubyGems' user gem directory and runs
+    `BUNDLE_VERSION=system make update-bundler` to refresh `Gemfile.lock`
+  - runs `make update-all-dep`
 - Finalizes with `make msg="updated ruby dependencies" desc="<desc>" ready`.
 
 ### 🧱 `afctl update-docker-dep`
@@ -1053,7 +1061,11 @@ Behavior without `--no-pr`:
 
 - Runs `make name=deps new-<kind>`.
 - Runs `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`.
-- Runs `make submodule go-dep ruby-update-all-dep`.
+- Runs `make submodule go-dep` to update Go dependencies.
+- Installs the latest Bundler in RubyGems' user gem directory, then runs
+  `BUNDLE_VERSION=system make ruby-update-bundler` to update `test/Gemfile.lock`
+  even when Homebrew removed the previously locked Bundler version.
+- Runs `make ruby-update-all-dep` to update Ruby test dependencies.
 - Finalizes with
   `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="https://github.com/alexfalkowski/go-service/releases/tag/<version>" ready`.
 
