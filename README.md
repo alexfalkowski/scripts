@@ -32,7 +32,7 @@ Commands:
 - `afctl create-ci`: create/configure a CircleCI project and trigger its first pipeline.
 - `afctl deps`: install the managed Homebrew prerequisites, user Bundler, and shared Go developer tools.
 - `afctl done`: complete the current repository workflow through `make done`.
-- `afctl help` (also `afctl -h` or `afctl --help`): list the commands available in this checkout.
+- `afctl help` (also `afctl -h` or `afctl --help`): list commands and common examples; add a command name for its usage and prerequisites.
 - `afctl load`: run local HTTP/gRPC load tests for specific services.
 - `afctl lsp`: run Ruby LSP after `make dep`.
 - `afctl repos`: clone every non-archived `alexfalkowski` repo into `~/code`, or run `make latest` for ones already checked out there.
@@ -130,11 +130,18 @@ Verify the command dispatcher before running a maintenance action:
 
 ```bash
 afctl help
+afctl help update
+afctl ai --help
 ```
 
 If you have not added the repository to `PATH`, run the same command from the
 repository root as `./afctl help`. The list is generated from executable files
 in `libexec/`, so it is the authoritative command catalog for this checkout.
+
+Use `afctl help <command>` or `afctl <command> --help` (also `-h`) to see
+arguments, examples, and prerequisites without running the command. These pages
+come from the command reference below and need no provider CLI, credentials, or
+network access. For example, `afctl create-ci --help` only displays help.
 
 ## 🧪 Make targets and validation
 
@@ -263,7 +270,7 @@ runs each repo's `make done`.
 ### 🧩 Bump `go-service` dependency in all services
 
 ```bash
-afctl update-service new svc v2.3.4
+afctl update-service new build v2.3.4
 afctl update-service done
 ```
 
@@ -274,7 +281,7 @@ each service repository.
 ### 📌 Bump `bin` submodule across all configured repos
 
 ```bash
-afctl update all submodule svc "bump bin submodule"
+afctl update all submodule build "bump bin submodule"
 afctl update all done
 ```
 
@@ -293,7 +300,7 @@ Replace `<version>` with the Bundler version you intend to roll out.
 ### 🧬 Update Buf remote plugins
 
 ```bash
-afctl update-buf all new svc "update Buf dependencies"
+afctl update-buf all new build "update Buf dependencies"
 afctl update-buf all done
 ```
 
@@ -354,13 +361,54 @@ afctl load grpc bezeichner
 ```
 
 Run these only after local services are listening on the ports defined in
-[`afctl load`](afctl).
+[`libexec/load`](libexec/load).
 
 ## 📚 Command reference
 
+In syntax lines, `<name>` is a required argument, `[name]` is optional, and
+`...` means multiple arguments are accepted. Replace placeholders with your own
+values; do not type the angle brackets. Quote descriptions and prompts that
+contain spaces. Versions in the examples illustrate the syntax; choose the
+version you intend to install.
+
+For updates that take a branch `<kind>`, it selects the target repository's
+`new-<kind>` Make target. Common kinds are `build`, `docs`, `feature`, `fix`,
+`refactor`, and `test`; `svc` requires the target to expose `new-svc`.
+`update-docker-dep` takes an image kind instead.
+`<desc>` is the PR description. Without `--no-pr`, these update workflows can
+create a branch, commit, push, open a PR, and enable auto-merge through
+`make ready`. With `--no-pr`, they leave updates uncommitted on the current
+branch; downloads and generation still run. See [Workflow side effects](#workflow-side-effects).
+
+### ❓ `afctl help`
+
+Show the command catalog, or usage, prerequisites, and examples for one command:
+
+```bash
+afctl help [<command>]
+```
+
+Examples:
+
+```bash
+afctl help
+afctl help update-ruby
+afctl update-ruby --help
+afctl update-ruby -h
+```
+
+The last three commands show the same help page. Help reads this checkout's
+README with `awk` and does not execute the selected command. Run it from any
+directory once `afctl` is on `PATH`. `afctl ai help <kind>` shows the additional
+guidance and configuration for a particular skill.
+
 ### 🧹 `afctl clean`
 
-Run inside a target repository:
+Before running: change to a target repository that exposes `make dep` and has
+its dependency tools installed (for example, Ruby and Bundler for a Ruby repo).
+Dependency installation may need network access.
+
+Example:
 
 ```bash
 afctl clean
@@ -374,7 +422,10 @@ Behavior:
 
 ### ✅ `afctl done`
 
-Run inside a target repository:
+Before running: change to a target repository with `make done`, Git remote
+access, and an initialized `bin` submodule if its Makefile uses shared tooling.
+
+Example:
 
 ```bash
 afctl done
@@ -388,6 +439,12 @@ Runs the repository's `make done` workflow.
 ### 🤖 `afctl ai`
 
 Start an interactive Codex or Claude session for a configured kind.
+
+Before running: install `yq` and the selected provider CLI, configure that
+provider's authentication, and change to the repository you want to work on.
+For skill kinds, that repository must make the shared skill available (for
+example through `make codex-init` or `make claude-init` when exposed there).
+Ledger display also needs `glow` and an existing scoped ledger file.
 
 Interactive Codex sessions, including resumed sessions, use `--no-alt-screen`
 to preserve terminal scrollback on Linux and macOS. Claude sessions set
@@ -407,13 +464,17 @@ Examples:
 
 ```bash
 afctl ai codex code "add a cache for this request"
+# Find issues in lib/, then implement an entry recorded by that skill.
+afctl ai codex code-issues-find -s lib "check argument handling"
+afctl ai codex code-issues-implement -s lib ISSUE-1
+# Read the ledger or get help before starting a session.
+afctl ai ledger code-issues-implement -s lib
+afctl ai help code-issues-implement
 afctl ai claude test-gaps-find "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib -c 95% "focus on the command-line interface"
 afctl ai codex test-gaps-find -s lib --reasoning high "focus on the command-line interface"
 afctl ai codex code -a "add a cache for this request"
-afctl ai codex code-issues-implement -s lib ISSUE-1
-afctl ai ledger code-issues-implement -s lib
 afctl ai ledger code-issues-implement -s lib ISSUE-12
 afctl ai skills
 afctl ai help doc-gaps-fix
@@ -513,21 +574,36 @@ ledger and owns the batch's sequential validation and stop behavior.
 
 Print a completion script for a supported shell.
 
+Before running: use zsh with `afctl` on `PATH`. Add the following example to
+`~/.zshrc`, then start a new shell or run it in the current shell:
+
 ```zsh
 source <(afctl completion zsh)
 ```
 
 The generated zsh completion discovers the executable `libexec` commands in
 the current `afctl` checkout and completes documented argument values.
+For example, type `afctl help ` or `afctl update ` and press Tab to discover
+commands or directory sets.
 
 ### 🚀 `afctl create-ci`
 
 Create and initialize a CircleCI project.
 
+Before running: have `curl`, network access to CircleCI, and exported
+`CIRCLECI_API_TOKEN` and `CODECOV_TOKEN` values. The repository name belongs to
+`alexfalkowski`; pass only its name, not a URL or owner/name pair.
+
 Syntax:
 
 ```bash
 afctl create-ci <repo-name>
+```
+
+Example (creates remote resources and starts a pipeline):
+
+```bash
+afctl create-ci my-repo-name
 ```
 
 Behavior:
@@ -538,6 +614,10 @@ Behavior:
 - Triggers a `master` pipeline.
 
 ### 🛠️ `afctl deps`
+
+Before running: install Homebrew and make `brew` available on `PATH`. This
+command needs network access and installs the packages listed in this
+checkout's `Brewfile`, including Ruby, Go, and the optional AI CLIs.
 
 Install the Brewfile prerequisites, Bundler, and pinned Go tools:
 
@@ -552,6 +632,12 @@ in RubyGems' user gem directory; pinned Go tools are defined directly in
 ### 📈 `afctl load`
 
 Run local HTTP or gRPC load tests for `standort` and `bezeichner`.
+
+Before running: install `vegeta` for HTTP or `ghz` for gRPC. Start the selected
+service first: `standort` uses HTTP port 11002 and gRPC port 12002;
+`bezeichner` uses HTTP port 11001 and gRPC port 12001. The HTTP payload files
+must exist under `data/`. See the local load test workflow for service startup
+examples.
 
 Run this command from the repository root. It reads request payloads from
 `data/*.json` and writes HTTP report binaries to `data/*.bin` relative to the
@@ -601,6 +687,9 @@ Load profile:
 
 ### 💬 `afctl lsp`
 
+Before running: change to a repository with `make dep` and Ruby/Bundler
+installed. Its root or `test/Gemfile` must include `ruby-lsp`.
+
 Run Ruby LSP in the current repository:
 
 ```bash
@@ -639,7 +728,14 @@ Behavior:
 Rotate GitHub OAuth CircleCI triggers for every project slug in
 [`lib/slugs.sh`](lib/slugs.sh).
 
+Before running: install `curl` and `jq`, export `CIRCLECI_API_TOKEN`, and verify
+the configured project slugs. Even with `DRY_RUN=1`, this makes authenticated
+CircleCI GET requests; it skips the DELETE/POST requests.
+
+Examples:
+
 ```bash
+DRY_RUN=1 afctl rotate-ci
 afctl rotate-ci
 ```
 
@@ -656,6 +752,10 @@ Behavior:
 ### 🔁 `afctl rotate-oauth-ci`
 
 Rotate one GitHub OAuth CircleCI trigger.
+
+Before running: install `curl` and `jq`, and have a CircleCI API token and the
+project slug (for example, `gh/alexfalkowski/bin`). The example uses an already
+exported token. `DRY_RUN=1` still reads CircleCI state over the network.
 
 Syntax:
 
@@ -688,6 +788,12 @@ Behavior:
 
 Run an action across one directory set.
 
+Before running: check the selected paths in `lib/dirs.sh`; every repository
+must exist locally and expose the chosen action's Make targets. Run from any
+directory. `latest`, `done`, and submodule actions need Git remote access;
+`ci` needs `curl`, `jq`, GNU `sed`, GNU `sort`, and Docker Hub access.
+The `dep` and `clean` actions need each repository's dependency tools.
+
 Syntax:
 
 ```bash
@@ -712,6 +818,13 @@ afctl update <dirs> <action> [args...]
 - `ci`: `afctl update-ci`
 - `submodule`: `afctl update-submodule <kind> <desc>`
 
+For `submodule`, `<kind>` selects `make new-<kind>` (for example, `build`) and
+`<desc>` is a quoted PR description. `ci` and `submodule` accept `--no-pr` to
+leave updates uncommitted on current branches. Otherwise they run `make ready`
+to publish PRs and enable auto-merge. `done` pulls `master` and deletes the
+previous branch; `purge` deletes local branches except `master` and prunes
+stale remote-tracking refs.
+
 Examples:
 
 ```bash
@@ -721,13 +834,17 @@ afctl update all latest
 afctl update all clean
 afctl update services ci
 afctl update services ci --no-pr
-afctl update all submodule svc "bump bin submodule"
+afctl update all submodule build "bump bin submodule"
 afctl update all submodule build "bump bin submodule" --no-pr
 ```
 
 ### 🧩 `afctl update-service`
 
 Run service-specific dependency actions across the `services` list.
+
+Before running: check the `services` paths in `lib/dirs.sh`. Each must be a
+service repository with Go, Ruby/Bundler, and the shared service Make targets.
+Updates download dependencies and, by default, publish PRs through `make ready`.
 
 Syntax:
 
@@ -740,10 +857,16 @@ Actions:
 - `new`: `afctl update-service-dep <kind> <version>`
 - `done`: `make done`
 
+For `new`, `<kind>` selects `make new-<kind>` (for example, `build`), and
+`<version>` is the `go-service/v2` module version, including its `v` prefix.
+This also upgrades Bundler and Ruby test dependencies. `--no-pr` leaves
+updates uncommitted on current branches. `done` pulls `master` and deletes
+the previously checked-out branch in each repository.
+
 Examples:
 
 ```bash
-afctl update-service new svc v2.3.4
+afctl update-service new build v2.3.4
 afctl update-service new build v2.3.4 --no-pr
 afctl update-service done
 ```
@@ -751,6 +874,11 @@ afctl update-service done
 ### 💎 `afctl update-ruby`
 
 Run Ruby-specific dependency actions across the `services` and `ruby` lists.
+
+Before running: check the selected paths in `lib/dirs.sh`. Each repository
+needs Ruby/Bundler, a root or `test/Gemfile`, and the corresponding shared Ruby
+Make targets. Updates require dependency downloads and, by default, GitHub PR
+access for `make ready`.
 
 Syntax:
 
@@ -770,6 +898,12 @@ Actions:
 - `done`: `make done`
 - `bundler`: `afctl update-bundler <version> <desc>`
 
+For `new`, `<kind>` selects `make new-<kind>` (for example, `test`). For
+`bundler`, `<version>` is the Bundler version without a `v` prefix. Both need
+a quoted `<desc>` and accept `--no-pr` to leave updates uncommitted.
+Here `all` means Ruby and service repos only. `done` pulls `master` and
+deletes the previously checked-out branch in each repository.
+
 Examples:
 
 ```bash
@@ -782,6 +916,11 @@ afctl update-ruby all done
 ### 🧬 `afctl update-buf`
 
 Run Buf dependency actions across configured repositories.
+
+Before running: check paths in `lib/dirs.sh` and install `buf`, `rg`, `yq`,
+`curl`, and `jq`. Updates need access to Buf's registry. Matching repositories
+need a Makefile including `bin/build/make/buf.mak`, a `buf.gen.yaml` with
+pinned remote plugins, and the `update-all-dep` and `generate` targets.
 
 Syntax:
 
@@ -802,17 +941,30 @@ Actions:
 - `new`: `afctl update-buf-dep <kind> <desc>`
 - `done`: `make done`
 
+For `new`, `<kind>` selects `make new-<kind>` (for example, `build`) and
+`<desc>` is the quoted PR description. By default updates publish PRs through
+`make ready`; `--no-pr` leaves updates uncommitted. `done` pulls `master`
+and deletes the previously checked-out branch in each configured repository.
+
 Examples:
 
 ```bash
-afctl update-buf all new svc "update Buf dependencies"
+afctl update-buf all new build "update Buf dependencies"
 afctl update-buf all new build "update Buf dependencies" --no-pr
 afctl update-buf all done
 ```
 
 ### 🧬 `afctl update-buf-dep`
 
-Run inside a target repository.
+Before running: change to a target repository with a Makefile including
+`bin/build/make/buf.mak`, `buf.gen.yaml` with pinned remote plugins, and the
+`update-all-dep` and `generate` targets. Install `buf`, `rg`, `yq`, `curl`,
+and `jq`, with network access to Buf's registry.
+
+`<kind>` selects `make new-<kind>` (for example, `build`); `<desc>` is the
+quoted PR description. `--no-pr` skips branch creation and `make ready`,
+leaving updates uncommitted. Otherwise the workflow publishes a PR and
+enables auto-merge through `make ready`.
 
 Syntax:
 
@@ -823,7 +975,8 @@ afctl update-buf-dep <kind> <desc> [--no-pr]
 Example:
 
 ```bash
-afctl update-buf-dep svc "update Buf dependencies"
+afctl update-buf-dep build "update Buf dependencies"
+afctl update-buf-dep build "update Buf dependencies" --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -842,7 +995,13 @@ Behavior without `--no-pr`:
 
 ### 💠 `afctl update-bundler`
 
-Run inside a target repository.
+Before running: change to a target repository with Ruby/Bundler, a root or
+`test/Gemfile`, and the shared `submodule` and `update-bundler` (or
+`ruby-update-bundler`) Make targets. Installing Bundler needs network access.
+
+`<version>` has no `v` prefix; `<desc>` is the quoted PR description.
+`--no-pr` leaves updates uncommitted on the current branch; otherwise the
+workflow uses `new-test` and publishes a PR through `make ready`.
 
 Syntax:
 
@@ -854,6 +1013,7 @@ Example:
 
 ```bash
 afctl update-bundler 2.5.6 "upgrade bundler"
+afctl update-bundler 2.5.6 "upgrade bundler" --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -872,10 +1032,22 @@ Behavior without `--no-pr`:
 
 ### 🏗️ `afctl update-ci`
 
-Run inside a target repository with CircleCI config.
+Before running: change to a target repository with `.circleci/config.yml`
+or `.circleci/continue_config.yml`. Install `curl`, `jq`, GNU `sed`, and GNU
+`sort`, with network access to Docker Hub. The default workflow also needs
+`make new-build`, `make ready`, and GitHub access to publish a PR and enable
+auto-merge. `--no-pr` leaves the config edits uncommitted on the current branch.
+
+Syntax:
 
 ```bash
 afctl update-ci [--no-pr]
+```
+
+Example:
+
+```bash
+afctl update-ci --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -900,7 +1072,14 @@ Tag handling detail:
 
 ### 🧬 `afctl update-go-dep`
 
-Run inside a target repository.
+Before running: change to a Go repository with Ruby (this helper is written
+in Ruby), Go, and the `outdated-dep` and `update-dep` Make targets. Service
+repos with `test/Gemfile` use `go-outdated-dep` and `go-update-dep` instead.
+Dependency updates need network access.
+
+Optional `<kind>` selects `make new-<kind>` (for example, `build`) and
+`<desc>` is the quoted PR description; supply both together to publish a PR
+through `make ready`. Omit both, or use `--no-pr`, to leave updates uncommitted.
 
 Syntax:
 
@@ -939,7 +1118,13 @@ Behavior:
 
 ### 💍 `afctl update-ruby-dep`
 
-Run inside a target repository.
+Before running: change to a repository with Ruby/Bundler, a root or
+`test/Gemfile`, and the shared Ruby Make targets. This downloads gems and
+also upgrades Bundler. Repositories without a Gemfile are skipped.
+
+`<kind>` selects `make new-<kind>` (for example, `test`); `<desc>` is the
+quoted PR description. `--no-pr` leaves updates uncommitted; otherwise the
+workflow publishes a PR and enables auto-merge through `make ready`.
 
 Syntax:
 
@@ -951,6 +1136,7 @@ Example:
 
 ```bash
 afctl update-ruby-dep test "update ruby dependencies"
+afctl update-ruby-dep test "update ruby dependencies" --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -975,6 +1161,13 @@ Behavior without `--no-pr`:
 Update a package in `$HOME/code/docker/<kind>/Dockerfile`, or in every matching
 Dockerfile.
 
+Before running: have the Docker repository checked out at `$HOME/code/docker`.
+Matching Dockerfiles must have a sibling Makefile with `VERSION`. Use GNU
+`sed` on `PATH`. `<kind>` is an image directory such as `k8s`, not a branch
+kind; `<package>` must match an existing image or tool entry.
+`--no-pr` leaves edits uncommitted; otherwise the workflow uses `new-feature`
+and publishes a PR through `make ready`, requiring GitHub access.
+
 Syntax:
 
 ```bash
@@ -987,6 +1180,7 @@ Example:
 afctl update-docker-dep k8s doctl 1.155.0
 afctl update-docker-dep all trivy 0.72.0
 afctl update-docker-dep root ruby 4.0.6
+afctl update-docker-dep k8s doctl 1.155.0 --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -1015,6 +1209,12 @@ Behavior without `--no-pr`:
 ### 🌱 `afctl update-root`
 
 Update `alexfalkowski/root` in every matching `$HOME/code/docker/**/Dockerfile`.
+
+Before running: have that Docker repository checked out, with an
+`alexfalkowski/root:<version>` base image in matching Dockerfiles and a
+`VERSION` in each sibling Makefile.
+`--no-pr` leaves edits uncommitted; otherwise the workflow uses `new-feature`
+and publishes a PR through `make ready`, requiring GitHub access.
 
 Syntax:
 
@@ -1046,7 +1246,14 @@ Behavior without `--no-pr`:
 
 ### 🧩 `afctl update-service-dep`
 
-Run inside a service repository.
+Before running: change to a service repository with Go, Ruby/Bundler,
+`test/Gemfile`, and the shared Go and Ruby Make targets. This downloads
+dependencies and upgrades Bundler and Ruby test dependencies as well as
+`go-service/v2`.
+
+`<kind>` selects `make new-<kind>` (for example, `build`); `<version>` is the
+Go module version including its `v` prefix. `--no-pr` leaves updates
+uncommitted; otherwise the workflow publishes a PR through `make ready`.
 
 Syntax:
 
@@ -1057,7 +1264,8 @@ afctl update-service-dep <kind> <version> [--no-pr]
 Example:
 
 ```bash
-afctl update-service-dep svc v2.3.4
+afctl update-service-dep build v2.3.4
+afctl update-service-dep build v2.3.4 --no-pr
 ```
 
 Behavior without `--no-pr`:
@@ -1074,8 +1282,13 @@ Behavior without `--no-pr`:
 
 ### 📌 `afctl update-submodule`
 
-Run inside a repository that includes `github.com/alexfalkowski/bin` as a
-submodule.
+Before running: change to a repository that includes `github.com/alexfalkowski/bin`
+as an initialized submodule and exposes `make update-submodule`. Updating
+submodules needs access to their Git remotes.
+
+`<kind>` selects `make new-<kind>` (for example, `build`); `<desc>` is the
+quoted PR description. `--no-pr` leaves updates uncommitted; otherwise the
+workflow publishes a PR and enables auto-merge through `make ready`.
 
 Syntax:
 
@@ -1086,7 +1299,8 @@ afctl update-submodule <kind> <desc> [--no-pr]
 Example:
 
 ```bash
-afctl update-submodule svc "bump bin submodule"
+afctl update-submodule build "bump bin submodule"
+afctl update-submodule build "bump bin submodule" --no-pr
 ```
 
 Behavior without `--no-pr`:
