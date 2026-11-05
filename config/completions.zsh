@@ -174,8 +174,9 @@ _afctl() {
   local command command_path
   local -a commands
 
-  if (( CURRENT == 2 )); then
-    commands=(completion help -h --help)
+  if (( CURRENT == 2 )) || { (( CURRENT == 3 )) && [[ $words[2] == help || $words[2] == -h || $words[2] == --help ]]; }; then
+    commands=(completion help)
+    (( CURRENT == 2 )) && commands+=(-h --help)
     for command_path in "$_afctl_completion_dir"/libexec/*(N); do
       [[ -x $command_path ]] && commands+=("${command_path:t}")
     done

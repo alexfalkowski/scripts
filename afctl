@@ -10,6 +10,7 @@ readonly libexec_dir="$script_dir/libexec"
 usage() {
   cat >&2 <<'EOF'
 usage: afctl <command> [args...]
+       afctl help [<command>]
 
 Commands:
 EOF
@@ -18,10 +19,61 @@ EOF
     [ -x "$subcommand_path" ] || continue
     printf '  %s\n' "${subcommand_path##*/}" >&2
   done
+  printf '  help\n' >&2
   printf '  completion\n' >&2
+
+  cat >&2 <<'EOF'
+
+Examples:
+  afctl help update                   Show arguments, prerequisites, and examples
+  afctl ai --help                     Show AI session options and examples
+  afctl ai skills                     List available skills
+  afctl update services ci --no-pr     Update service CI images on current branches
+
+Use afctl <command> --help (or -h) for command details without running it.
+In usage lines, <name> is required, [name] is optional, and ... means repeatable.
+EOF
 
   printf '\nSee %s/README.md for command details.\n' "$script_dir" >&2
   exit "${1:-1}"
+}
+
+# Keeps terminal help and the README command reference in sync.
+show_command_help() {
+  local help_command=$1
+
+  case "$help_command" in
+  completion | help) ;;
+  '' | *[!a-z0-9-]*)
+    printf 'unknown command: %s\n' "$help_command" >&2
+    return 1
+    ;;
+  *)
+    if [ ! -x "$libexec_dir/$help_command" ]; then
+      printf 'unknown command: %s\n' "$help_command" >&2
+      return 1
+    fi
+    ;;
+  esac
+
+  awk -v command="$help_command" '
+    /^### / && index($0, "`afctl " command "`") {
+      found = 1
+      print "afctl " command
+      next
+    }
+    found && /^###? / { exit }
+    found && !/^```/ {
+      gsub(/`/, "")
+      print
+    }
+    END {
+      if (!found) {
+        print "no command help found for " command > "/dev/stderr"
+        exit 1
+      }
+    }
+  ' "$script_dir/README.md"
 }
 
 # Prints the zsh completion script with this checkout's absolute path embedded.
@@ -39,9 +91,24 @@ readonly command="${1:-}"
 
 case "$command" in
 '' | help | -h | --help)
+  if [ "$#" -gt 2 ]; then
+    echo 'usage: afctl help [<command>]' >&2
+    exit 1
+  fi
+  if [ "$#" -eq 2 ]; then
+    case "$2" in
+    -h | --help) show_command_help help ;;
+    *) show_command_help "$2" ;;
+    esac
+    exit 0
+  fi
   usage 0
   ;;
 completion)
+  if [ "$#" -eq 2 ] && { [ "$2" = --help ] || [ "$2" = -h ]; }; then
+    show_command_help completion
+    exit 0
+  fi
   shift
   completion "$@"
   exit 0
@@ -57,6 +124,11 @@ readonly command_path="$libexec_dir/$command"
 if [ ! -x "$command_path" ]; then
   printf 'unknown command: %s\n' "$command" >&2
   usage
+fi
+
+if [ "$#" -eq 2 ] && { [ "$2" = --help ] || [ "$2" = -h ]; }; then
+  show_command_help "$command"
+  exit 0
 fi
 
 shift
