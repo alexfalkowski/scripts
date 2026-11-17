@@ -49,7 +49,7 @@ Commands:
 - `afctl update-ruby`: run Ruby-related bulk actions over the `services` and `ruby` sets.
 - `afctl update-ruby-dep`: update Ruby dependencies using make targets.
 - `afctl update-service`: run service-specific bulk actions over the `services` set only.
-- `afctl update-service-dep`: bump `github.com/alexfalkowski/go-service/v2` in service repos.
+- `afctl update-service-dep`: bump `github.com/alexfalkowski/go-service/v3` in service repos.
 - `afctl update-submodule`: update this repo as a submodule in a target repo.
 
 ## ✅ Prerequisites
@@ -275,11 +275,11 @@ runs each repo's `make done`.
 ### 🧩 Bump `go-service` dependency in all services
 
 ```bash
-afctl update-service new build v2.3.4
+afctl update-service new build v3.0.0
 afctl update-service done
 ```
 
-Replace `v2.3.4` as needed. This also installs the latest Bundler in RubyGems'
+Replace `v3.0.0` as needed. This also installs the latest Bundler in RubyGems'
 user gem directory and updates the Bundler lock and Ruby test dependencies in
 each service repository.
 
@@ -863,7 +863,7 @@ Actions:
 - `done`: `make done`
 
 For `new`, `<kind>` selects `make new-<kind>` (for example, `build`), and
-`<version>` is the `go-service/v2` module version, including its `v` prefix.
+`<version>` is the `go-service/v3` module version, including its `v` prefix.
 This also upgrades Bundler and Ruby test dependencies. `--no-pr` leaves
 updates uncommitted on current branches. `done` pulls `master` and deletes
 the previously checked-out branch in each repository.
@@ -871,8 +871,8 @@ the previously checked-out branch in each repository.
 Examples:
 
 ```bash
-afctl update-service new build v2.3.4
-afctl update-service new build v2.3.4 --no-pr
+afctl update-service new build v3.0.0
+afctl update-service new build v3.0.0 --no-pr
 afctl update-service done
 ```
 
@@ -1254,7 +1254,7 @@ Behavior without `--no-pr`:
 Before running: change to a service repository with Go, Ruby/Bundler,
 `test/Gemfile`, and the shared Go and Ruby Make targets. This downloads
 dependencies and upgrades Bundler and Ruby test dependencies as well as
-`go-service/v2`.
+`go-service/v3`.
 
 `<kind>` selects `make new-<kind>` (for example, `build`); `<version>` is the
 Go module version including its `v` prefix. `--no-pr` leaves updates
@@ -1269,21 +1269,21 @@ afctl update-service-dep <kind> <version> [--no-pr]
 Example:
 
 ```bash
-afctl update-service-dep build v2.3.4
-afctl update-service-dep build v2.3.4 --no-pr
+afctl update-service-dep build v3.0.0
+afctl update-service-dep build v3.0.0 --no-pr
 ```
 
 Behavior without `--no-pr`:
 
 - Runs `make name=deps new-<kind>`.
-- Runs `make module=github.com/alexfalkowski/go-service/v2@<version> go-get`.
+- Runs `make module=github.com/alexfalkowski/go-service/v3@<version> go-get`.
 - Runs `make submodule go-dep` to update Go dependencies.
 - Installs the latest Bundler in RubyGems' user gem directory, then runs
   `BUNDLE_VERSION=system make ruby-update-bundler` to update `test/Gemfile.lock`
   even when Homebrew removed the previously locked Bundler version.
 - Runs `make ruby-update-all-dep` to update Ruby test dependencies.
 - Finalizes with
-  `make msg="upgraded github.com/alexfalkowski/go-service/v2 to <version>" desc="https://github.com/alexfalkowski/go-service/releases/tag/<version>" ready`.
+  `make msg="upgraded github.com/alexfalkowski/go-service/v3 to <version>" desc="https://github.com/alexfalkowski/go-service/releases/tag/<version>" ready`.
 
 ### 📌 `afctl update-submodule`
 
