@@ -798,6 +798,8 @@ must exist locally and expose the chosen action's Make targets. Run from any
 directory. `latest`, `done`, and submodule actions need Git remote access;
 `ci` needs `curl`, `jq`, GNU `sed`, GNU `sort`, and Docker Hub access.
 The `dep` and `clean` actions need each repository's dependency tools.
+The `configure` action requires each repository to expose `make configure`
+through its shared `bin/build/make/git.mak` include.
 
 Syntax:
 
@@ -818,6 +820,7 @@ afctl update <dirs> <action> [args...]
 - `latest`: `make latest`
 - `purge`: `make purge`
 - `dep`: `make dep`
+- `configure`: `make configure`
 - `clean`: `afctl clean`
 - `done`: `make done`
 - `ci`: `afctl update-ci`
@@ -836,6 +839,7 @@ Examples:
 afctl update go dep
 afctl update tooling dep
 afctl update all latest
+afctl update all configure
 afctl update all clean
 afctl update services ci
 afctl update services ci --no-pr

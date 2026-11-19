@@ -50,6 +50,12 @@ dep)
   done
   ;;
 
+configure)
+  for dir in "${directories[@]}"; do
+    (cd "$dir" && make configure)
+  done
+  ;;
+
 submodule)
   for dir in "${directories[@]}"; do
     (cd "$dir" && update-submodule "${@:3}")
