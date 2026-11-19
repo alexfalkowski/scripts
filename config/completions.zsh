@@ -98,7 +98,7 @@ _afctl_update() {
     _values 'directory set' ruby go services tooling all
     ;;
   4)
-    _values action latest purge dep clean done ci submodule
+    _values action latest purge dep configure clean done ci submodule
     ;;
   5)
     case $words[4] in
