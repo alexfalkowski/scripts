@@ -500,7 +500,7 @@ implement entries under `kinds` look like this:
 kinds:
   test-gaps-find:
     codex:
-      model: gpt-6.1-sol
+      model: gpt-6.2-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-opus-5-5
@@ -508,7 +508,7 @@ kinds:
     preamble: with agents and a goal
   test-gaps-implement:
     codex:
-      model: gpt-6.1-sol
+      model: gpt-6.2-sol
       reasoning: high
     claude:
       model: eu.anthropic.claude-sonnet-5-5
