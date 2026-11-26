@@ -4,6 +4,13 @@
 
 Use `bin/AGENTS.md` for shared skills and cross-repository defaults.
 
+## Accepted design
+
+Read the [accepted-design index](docs/agents/accepted-design.md) and the relevant
+area files before proposing a change or recording a finding or audit entry.
+Apply each decision within its documented scope and record new owner-accepted
+decisions in the relevant area file.
+
 ## Scope
 
 This guide applies to the repository root.
@@ -14,35 +21,13 @@ new version.
 
 ## Repo Rules
 
-- Prefer small, compatibility-preserving changes. `afctl` is the top-level
-  command; its subcommand implementations live in `libexec/`.
+- Prefer small, compatibility-preserving changes.
 - Use the root `Makefile` as the preferred command surface for repeatable
   setup, validation, submodule, and Git workflow tasks. Run `make` or
   `make help` to discover the available targets.
-- `update` and `update-service` use repository lists from `lib/dirs.sh`. Those
-  paths are machine-specific; do not rewrite them unless the task is to change
-  the configured repo sets.
-- Bulk commands `cd` into other repositories and invoke helpers such as
-  `update-ci`, `update-bundler`, and `update-submodule` by command name. Run
-  them through `afctl`; it places `libexec/` on `PATH` for those flows.
-- Many actions assume the target repo exposes `make` targets like `dep`,
-  `done`, `latest`, `purge`, `ready`, or `new-*`.
-- Avoid changing script names or argument order unless the task explicitly
-  requires it.
 - Place `# shellcheck` directives immediately after `#!/usr/bin/env bash`.
   Preserve inline Bash `readonly` assignments; when ShellCheck reports `SC2155`,
   add a suppression rather than splitting declaration and assignment.
-
-## Known Gotchas
-
-- `afctl update-service new <kind> <version>` updates Bundler alongside service
-  and Ruby test dependencies. Use `afctl update-ruby <dirs> bundler <version> <desc>`
-  for a standalone Bundler upgrade.
-- `afctl update-ci` edits CircleCI config in the target repo in place.
-- `afctl create-ci` makes live CircleCI API calls and triggers a pipeline.
-- `afctl clean` removes `test/vendor` and `vendor` before rerunning `make dep`.
-- `afctl load` assumes the local services are already running on the hard-coded ports
-  in `libexec/load`.
 
 ## Verification
 
